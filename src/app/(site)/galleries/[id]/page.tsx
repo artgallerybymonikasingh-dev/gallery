@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import PhotoGrid from "@/components/PhotoGrid";
+import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import type { Artwork, GalleryWithArtist } from "@/lib/types";
 
 export default async function GalleryPage({
@@ -39,7 +40,12 @@ export default async function GalleryPage({
         )}
       </div>
 
-      <PhotoGrid artworks={artworks ?? []} artistName={gallery.artist.name} />
+      <PhotoGrid
+        artworks={artworks ?? []}
+        artistName={gallery.artist.name}
+        whatsappNumber={gallery.whatsapp_number}
+      />
+      <WhatsAppFloatingButton phoneNumber={gallery.whatsapp_number} />
     </div>
   );
 }

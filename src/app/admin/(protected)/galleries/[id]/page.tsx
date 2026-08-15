@@ -63,6 +63,18 @@ export default async function ManageGalleryPage({
               className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
             />
           </label>
+          <label className="block text-sm font-medium text-neutral-700">
+            WhatsApp number override (optional)
+            <input
+              name="whatsapp_number"
+              defaultValue={gallery.whatsapp_number ?? ""}
+              placeholder="Leave blank to use the site-wide number"
+              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            />
+            <span className="mt-1 block text-xs text-neutral-500">
+              Digits only, country code first, e.g. 919876543210 for +91 98765 43210.
+            </span>
+          </label>
           <button
             type="submit"
             className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"

@@ -5,7 +5,12 @@ import "server-only";
 // which matters since this whole project is meant to run at $0. Requires
 // GEMINI_API_KEY; callers should treat a missing key as "feature disabled",
 // not an error, so the rest of the app works without it.
-const DEFAULT_MODEL = "gemini-2.0-flash";
+// Verified working against this project's API key. Google periodically
+// retires model versions (this replaced "gemini-2.0-flash", which started
+// 404ing) — if this one stops working, list currently available models with:
+//   node --env-file=.env.local -e "fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+process.env.GEMINI_API_KEY).then(r=>r.json()).then(d=>d.models.forEach(m=>console.log(m.name)))"
+// and update GEMINI_MODEL (env var) or this default.
+const DEFAULT_MODEL = "gemini-3.1-flash-lite";
 
 export function isAiDescriptionConfigured(): boolean {
   return Boolean(process.env.GEMINI_API_KEY);
@@ -24,8 +29,9 @@ export async function suggestDescription(imageBuffer: Buffer, mimeType: string):
 
   const prompt =
     "Write a short, tasteful gallery-style description of this artwork for a website, " +
-    "in 2-3 sentences. Describe the subject, style, mood, and notable colors or technique. " +
-    "Do not guess a title, price, or the artist's name. Plain text only, no markdown.";
+    "in 2-3 sentences and no more than 100 words. Describe the subject, style, mood, and " +
+    "notable colors or technique. Do not guess a title, price, or the artist's name. " +
+    "Plain text only, no markdown.";
 
   const response = await fetch(url, {
     method: "POST",
@@ -51,5 +57,11 @@ export async function suggestDescription(imageBuffer: Buffer, mimeType: string):
   const text: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error("AI description request returned no text.");
 
-  return text.trim();
+  return capAtWords(text.trim(), 100);
+}
+
+function capAtWords(text: string, maxWords: number): string {
+  const words = text.split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(" ") + "…";
 }

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import GalleryCard from "@/components/GalleryCard";
+import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import type { GalleryWithArtist } from "@/lib/types";
 
 export default async function HomePage() {
@@ -28,6 +29,7 @@ export default async function HomePage() {
           ))}
         </div>
       )}
+      <WhatsAppFloatingButton />
     </div>
   );
 }

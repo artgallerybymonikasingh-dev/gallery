@@ -84,6 +84,14 @@ export default async function AdminDashboardPage() {
             rows={2}
             className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
           />
+          <label className="block text-xs text-neutral-500">
+            WhatsApp number override (optional — digits only with country code, e.g. 919876543210)
+            <input
+              name="whatsapp_number"
+              placeholder="Leave blank to use the site-wide number"
+              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            />
+          </label>
           <button
             type="submit"
             className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"

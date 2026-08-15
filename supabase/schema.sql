@@ -16,6 +16,7 @@ create table if not exists galleries (
   title text not null,
   description text,
   cover_image_url text,
+  whatsapp_number text,
   created_at timestamptz not null default now()
 );
 

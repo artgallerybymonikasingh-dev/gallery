@@ -116,11 +116,12 @@ export async function createGallery(formData: FormData) {
   if (!title) throw new Error("Gallery title is required");
   if (!artistId) throw new Error("An artist must be selected");
   const description = readOptionalString(formData, "description");
+  const whatsappNumber = readOptionalString(formData, "whatsapp_number");
 
   const admin = createAdminClient();
   const { error } = await admin
     .from("galleries")
-    .insert({ title, artist_id: artistId, description });
+    .insert({ title, artist_id: artistId, description, whatsapp_number: whatsappNumber });
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin");
@@ -132,11 +133,12 @@ export async function updateGallery(galleryId: string, formData: FormData) {
   const title = readOptionalString(formData, "title");
   if (!title) throw new Error("Gallery title is required");
   const description = readOptionalString(formData, "description");
+  const whatsappNumber = readOptionalString(formData, "whatsapp_number");
 
   const admin = createAdminClient();
   const { error } = await admin
     .from("galleries")
-    .update({ title, description })
+    .update({ title, description, whatsapp_number: whatsappNumber })
     .eq("id", galleryId);
   if (error) throw new Error(error.message);
 

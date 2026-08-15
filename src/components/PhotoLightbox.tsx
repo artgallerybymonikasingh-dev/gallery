@@ -1,18 +1,29 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Artwork } from "@/lib/types";
 import { whatsappEnquiryLink } from "@/lib/whatsapp";
 
 export default function PhotoLightbox({
   artwork,
   artistName,
+  whatsappNumber,
   onClose,
 }: {
   artwork: Artwork;
   artistName: string;
+  whatsappNumber?: string | null;
   onClose: () => void;
 }) {
+  // Portal straight to <body> so this always paints above everything,
+  // including the sticky header — its backdrop-blur promotes it to a
+  // compositing layer that some browsers stack above z-50 content that's
+  // merely nested inside <main>, even though DOM stacking order says
+  // otherwise.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -27,7 +38,9 @@ export default function PhotoLightbox({
 
   const hasDimensions = artwork.width_cm && artwork.height_cm;
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex flex-col bg-black/95"
       role="dialog"
@@ -76,7 +89,7 @@ export default function PhotoLightbox({
           )}
 
           <a
-            href={whatsappEnquiryLink(artwork.title, artistName)}
+            href={whatsappEnquiryLink(artwork.title, artistName, whatsappNumber)}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition-transform hover:scale-105 active:scale-95"
@@ -88,6 +101,7 @@ export default function PhotoLightbox({
           </a>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

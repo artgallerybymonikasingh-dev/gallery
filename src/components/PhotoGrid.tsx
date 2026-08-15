@@ -7,9 +7,11 @@ import PhotoLightbox from "./PhotoLightbox";
 export default function PhotoGrid({
   artworks,
   artistName,
+  whatsappNumber,
 }: {
   artworks: Artwork[];
   artistName: string;
+  whatsappNumber?: string | null;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = artworks.find((a) => a.id === selectedId) ?? null;
@@ -43,6 +45,7 @@ export default function PhotoGrid({
         <PhotoLightbox
           artwork={selected}
           artistName={artistName}
+          whatsappNumber={whatsappNumber}
           onClose={() => setSelectedId(null)}
         />
       )}

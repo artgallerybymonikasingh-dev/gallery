@@ -12,6 +12,7 @@ export type Gallery = {
   title: string;
   description: string | null;
   cover_image_url: string | null;
+  whatsapp_number: string | null;
   created_at: string;
 };
 

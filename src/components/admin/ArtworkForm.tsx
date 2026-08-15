@@ -42,7 +42,7 @@ export default function ArtworkForm({
   }
 
   return (
-    <form action={action} encType="multipart/form-data" className="space-y-2">
+    <form action={action} className="space-y-2">
       <label className="block text-sm font-medium text-neutral-700">
         {requireImage ? "Photo" : "Replace photo (optional)"}
         <input
