@@ -33,27 +33,38 @@ export async function suggestDescription(imageBuffer: Buffer, mimeType: string):
     "notable colors or technique. Do not guess a title, price, or the artist's name. " +
     "Plain text only, no markdown.";
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: prompt },
-            { inline_data: { mime_type: mimeType, data: imageBuffer.toString("base64") } },
-          ],
-        },
-      ],
-    }),
+  const body = JSON.stringify({
+    contents: [
+      {
+        parts: [
+          { text: prompt },
+          { inline_data: { mime_type: mimeType, data: imageBuffer.toString("base64") } },
+        ],
+      },
+    ],
   });
 
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new Error(`AI description request failed (${response.status}). ${detail.slice(0, 200)}`);
+  // The free tier occasionally returns 503 "high demand" — one quick retry
+  // clears most of them without making the admin wait too long.
+  let response: Response;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    });
+    if (response.ok || response.status !== 503 || attempt === 2) break;
+    await new Promise((resolve) => setTimeout(resolve, 2500));
   }
 
-  const data = await response.json();
+  if (!response!.ok) {
+    const detail = await response!.text().catch(() => "");
+    throw new Error(
+      `AI description request failed (${response!.status}). ${detail.slice(0, 200)}`
+    );
+  }
+
+  const data = await response!.json();
   const text: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error("AI description request returned no text.");
 

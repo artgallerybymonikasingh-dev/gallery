@@ -22,10 +22,10 @@ function readOptionalNumber(formData: FormData, key: string): number | null {
   return Number.isFinite(num) ? num : null;
 }
 
-async function uploadArtworkImage(file: File, galleryId: string) {
+async function uploadImage(file: File, pathPrefix: string) {
   const arrayBuffer = await file.arrayBuffer();
   const webpBuffer = await toWebp(Buffer.from(arrayBuffer));
-  const path = `${galleryId}/${crypto.randomUUID()}.webp`;
+  const path = `${pathPrefix}/${crypto.randomUUID()}.webp`;
 
   const admin = createAdminClient();
   const { error: uploadError } = await admin.storage.from(BUCKET).upload(path, webpBuffer, {
@@ -35,6 +35,10 @@ async function uploadArtworkImage(file: File, galleryId: string) {
 
   const { data: pub } = admin.storage.from(BUCKET).getPublicUrl(path);
   return { path, publicUrl: pub.publicUrl };
+}
+
+async function uploadArtworkImage(file: File, galleryId: string) {
+  return uploadImage(file, galleryId);
 }
 
 // ---------- AI description ----------
@@ -65,12 +69,25 @@ export async function createArtist(formData: FormData) {
   const name = readOptionalString(formData, "name");
   if (!name) throw new Error("Artist name is required");
   const bio = readOptionalString(formData, "bio");
+  const email = readOptionalString(formData, "email");
+  const whatsappNumber = readOptionalString(formData, "whatsapp_number");
+  const address = readOptionalString(formData, "address");
+
+  let avatarUrl: string | null = null;
+  const avatarFile = formData.get("avatar");
+  if (avatarFile instanceof File && avatarFile.size > 0) {
+    avatarUrl = (await uploadImage(avatarFile, "avatars")).publicUrl;
+  }
 
   const admin = createAdminClient();
-  const { error } = await admin.from("artists").insert({ name, bio });
+  const { error } = await admin
+    .from("artists")
+    .insert({ name, bio, email, whatsapp_number: whatsappNumber, address, avatar_url: avatarUrl });
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin");
+  revalidatePath("/about");
+  revalidatePath("/contact");
 }
 
 export async function updateArtist(artistId: string, formData: FormData) {
@@ -78,13 +95,42 @@ export async function updateArtist(artistId: string, formData: FormData) {
   const name = readOptionalString(formData, "name");
   if (!name) throw new Error("Artist name is required");
   const bio = readOptionalString(formData, "bio");
+  const email = readOptionalString(formData, "email");
+  const whatsappNumber = readOptionalString(formData, "whatsapp_number");
+  const address = readOptionalString(formData, "address");
 
   const admin = createAdminClient();
-  const { error } = await admin.from("artists").update({ name, bio }).eq("id", artistId);
+  const updates: Record<string, unknown> = {
+    name,
+    bio,
+    email,
+    whatsapp_number: whatsappNumber,
+    address,
+  };
+
+  const avatarFile = formData.get("avatar");
+  if (avatarFile instanceof File && avatarFile.size > 0) {
+    const { data: existing } = await admin
+      .from("artists")
+      .select("avatar_url")
+      .eq("id", artistId)
+      .single();
+
+    updates.avatar_url = (await uploadImage(avatarFile, "avatars")).publicUrl;
+
+    if (existing?.avatar_url) {
+      const oldPath = existing.avatar_url.split("/artwork-images/")[1];
+      if (oldPath) await admin.storage.from(BUCKET).remove([oldPath]);
+    }
+  }
+
+  const { error } = await admin.from("artists").update(updates).eq("id", artistId);
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin");
   revalidatePath("/");
+  revalidatePath("/about");
+  revalidatePath("/contact");
 }
 
 export async function deleteArtist(artistId: string) {
@@ -105,6 +151,9 @@ export async function deleteArtist(artistId: string) {
 
   revalidatePath("/admin");
   revalidatePath("/");
+  revalidatePath("/about");
+  revalidatePath("/contact");
+  revalidatePath("/exhibitions");
 }
 
 // ---------- Galleries ----------
@@ -255,6 +304,61 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
   revalidatePath(`/admin/galleries/${galleryId}`);
   revalidatePath(`/galleries/${galleryId}`);
   revalidatePath("/");
+}
+
+// ---------- Exhibitions ----------
+
+export async function createExhibition(formData: FormData) {
+  await requireAdmin();
+  const title = readOptionalString(formData, "title");
+  if (!title) throw new Error("Exhibition title is required");
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("exhibitions").insert({
+    title,
+    artist_id: readOptionalString(formData, "artist_id"),
+    location: readOptionalString(formData, "location"),
+    description: readOptionalString(formData, "description"),
+    start_date: readOptionalString(formData, "start_date"),
+    end_date: readOptionalString(formData, "end_date"),
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/exhibitions");
+  revalidatePath("/exhibitions");
+}
+
+export async function updateExhibition(exhibitionId: string, formData: FormData) {
+  await requireAdmin();
+  const title = readOptionalString(formData, "title");
+  if (!title) throw new Error("Exhibition title is required");
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("exhibitions")
+    .update({
+      title,
+      artist_id: readOptionalString(formData, "artist_id"),
+      location: readOptionalString(formData, "location"),
+      description: readOptionalString(formData, "description"),
+      start_date: readOptionalString(formData, "start_date"),
+      end_date: readOptionalString(formData, "end_date"),
+    })
+    .eq("id", exhibitionId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/exhibitions");
+  revalidatePath("/exhibitions");
+}
+
+export async function deleteExhibition(exhibitionId: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin.from("exhibitions").delete().eq("id", exhibitionId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/exhibitions");
+  revalidatePath("/exhibitions");
 }
 
 export async function deleteArtwork(artworkId: string, galleryId: string) {

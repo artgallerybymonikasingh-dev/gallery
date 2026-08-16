@@ -50,20 +50,29 @@ async function describeImage(imageUrl) {
   const buffer = Buffer.from(await imageRes.arrayBuffer());
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: PROMPT },
-            { inline_data: { mime_type: "image/webp", data: buffer.toString("base64") } },
-          ],
-        },
-      ],
-    }),
+  const body = JSON.stringify({
+    contents: [
+      {
+        parts: [
+          { text: PROMPT },
+          { inline_data: { mime_type: "image/webp", data: buffer.toString("base64") } },
+        ],
+      },
+    ],
   });
+
+  // The free tier occasionally returns 503 "high demand" — worth a couple
+  // of retries before giving up on this photo.
+  let res;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    });
+    if (res.ok || res.status !== 503 || attempt === 3) break;
+    await sleep(5000 * attempt);
+  }
 
   if (!res.ok) {
     const detail = await res.text().catch(() => "");

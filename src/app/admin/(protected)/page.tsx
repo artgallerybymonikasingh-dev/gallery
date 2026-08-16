@@ -146,10 +146,30 @@ export default async function AdminDashboardPage() {
             placeholder="Artist name"
             className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
           />
+          <label className="block text-xs text-neutral-500">
+            Profile photo (optional, shown on About Us)
+            <input type="file" name="avatar" accept="image/*" className="mt-1 w-full text-sm" />
+          </label>
           <textarea
             name="bio"
-            placeholder="Bio (optional)"
+            placeholder="Bio for About Us page (optional)"
             rows={2}
+            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+          <input
+            name="email"
+            type="email"
+            placeholder="Email (optional, shown on Reach Us)"
+            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+          <input
+            name="whatsapp_number"
+            placeholder="WhatsApp number (optional, e.g. 919876543210)"
+            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+          <input
+            name="address"
+            placeholder="Address (optional)"
             className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
           />
           <button

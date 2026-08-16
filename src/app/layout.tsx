@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Monika Singh — Art Gallery",
+  title: "Chitrashala — Art by Monika Singh & Associates",
   description:
-    "A gallery of original artwork by Monika Singh and associated artists.",
+    "Chitrashala: a gallery of original artwork by Monika Singh and associated artists.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

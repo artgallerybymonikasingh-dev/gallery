@@ -28,6 +28,9 @@ export default async function AdminProtectedLayout({
             Admin
           </Link>
           <div className="flex items-center gap-4 text-sm">
+            <Link href="/admin/exhibitions" className="text-neutral-500 hover:text-neutral-900">
+              Exhibitions
+            </Link>
             <Link href="/" target="_blank" className="text-neutral-500 hover:text-neutral-900">
               View site
             </Link>

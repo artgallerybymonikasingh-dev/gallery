@@ -7,6 +7,9 @@ create table if not exists artists (
   name text not null,
   bio text,
   avatar_url text,
+  email text,
+  whatsapp_number text,
+  address text,
   created_at timestamptz not null default now()
 );
 
@@ -33,8 +36,20 @@ create table if not exists artworks (
   created_at timestamptz not null default now()
 );
 
+create table if not exists exhibitions (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  artist_id uuid references artists(id) on delete set null,
+  location text,
+  description text,
+  start_date date,
+  end_date date,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists galleries_artist_id_idx on galleries(artist_id);
 create index if not exists artworks_gallery_id_idx on artworks(gallery_id);
+create index if not exists exhibitions_artist_id_idx on exhibitions(artist_id);
 
 -- Row Level Security: public visitors can only ever read. All writes go
 -- through Server Actions using the service-role key (see
@@ -44,10 +59,12 @@ create index if not exists artworks_gallery_id_idx on artworks(gallery_id);
 alter table artists enable row level security;
 alter table galleries enable row level security;
 alter table artworks enable row level security;
+alter table exhibitions enable row level security;
 
 create policy "Public read access" on artists for select using (true);
 create policy "Public read access" on galleries for select using (true);
 create policy "Public read access" on artworks for select using (true);
+create policy "Public read access" on exhibitions for select using (true);
 
 -- Storage bucket for artwork photos (public read, service-role write only).
 insert into storage.buckets (id, name, public)
