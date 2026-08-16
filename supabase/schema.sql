@@ -48,19 +48,25 @@ create table if not exists exhibitions (
   created_at timestamptz not null default now()
 );
 
+-- Exactly one of artwork_id / gallery_id is set: an appreciation is either
+-- posted on a specific painting, or on the gallery as a whole.
 create table if not exists appreciations (
   id uuid primary key default gen_random_uuid(),
-  artwork_id uuid not null references artworks(id) on delete cascade,
+  artwork_id uuid references artworks(id) on delete cascade,
+  gallery_id uuid references galleries(id) on delete cascade,
   name text,
   message text not null,
   approved boolean not null default false,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  constraint appreciations_target_check
+    check ((artwork_id is not null) <> (gallery_id is not null))
 );
 
 create index if not exists galleries_artist_id_idx on galleries(artist_id);
 create index if not exists artworks_gallery_id_idx on artworks(gallery_id);
 create index if not exists exhibitions_artist_id_idx on exhibitions(artist_id);
 create index if not exists appreciations_artwork_id_idx on appreciations(artwork_id);
+create index if not exists appreciations_gallery_id_idx on appreciations(gallery_id);
 
 -- Row Level Security: public visitors can only ever read. All writes go
 -- through Server Actions using the service-role key (see

@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from "react";
 import type { Appreciation } from "@/lib/types";
-import { submitArtworkAppreciation } from "@/app/(site)/actions";
+import { submitGalleryAppreciation } from "@/app/(site)/actions";
 
-export default function AppreciationSection({
-  artworkId,
+export default function GalleryAppreciationSection({
+  galleryId,
   appreciations,
 }: {
-  artworkId: string;
+  galleryId: string;
   appreciations: Appreciation[];
 }) {
   const [showForm, setShowForm] = useState(false);
@@ -27,7 +27,7 @@ export default function AppreciationSection({
     formData.set("message", message);
 
     startTransition(async () => {
-      const result = await submitArtworkAppreciation(artworkId, formData);
+      const result = await submitGalleryAppreciation(galleryId, formData);
       if ("error" in result) {
         setError(result.error);
       } else {
@@ -40,27 +40,32 @@ export default function AppreciationSection({
   }
 
   return (
-    <div className="mt-4 border-t border-white/10 pt-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-neutral-200">
-          Appreciations {appreciations.length > 0 && `(${appreciations.length})`}
-        </h3>
+    <div className="mt-10 rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-serif text-lg font-medium text-royal-maroon">
+          Appreciations for this gallery{" "}
+          {appreciations.length > 0 && (
+            <span className="font-sans text-sm font-normal text-neutral-500">
+              ({appreciations.length})
+            </span>
+          )}
+        </h2>
         {!showForm && !submitted && (
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="text-xs font-medium text-royal-gold-light hover:underline"
+            className="text-sm font-medium text-royal-teal hover:underline"
           >
-            💛 Appreciate this painting
+            💛 Appreciate this gallery
           </button>
         )}
       </div>
 
       {appreciations.length > 0 && (
-        <ul className="mt-2 space-y-2">
+        <ul className="mt-3 space-y-2">
           {appreciations.map((a) => (
-            <li key={a.id} className="rounded-md bg-white/5 px-3 py-2 text-sm text-neutral-200">
-              <span className="font-medium text-white">{a.name || "Anonymous"}</span>
+            <li key={a.id} className="rounded-md bg-royal-cream-deep px-3 py-2 text-sm text-neutral-700">
+              <span className="font-medium text-royal-ink">{a.name || "Anonymous"}</span>
               {": "}
               {a.message}
             </li>
@@ -68,43 +73,49 @@ export default function AppreciationSection({
         </ul>
       )}
 
+      {appreciations.length === 0 && !showForm && !submitted && (
+        <p className="mt-2 text-sm text-neutral-500">
+          Be the first to share your thoughts on this gallery.
+        </p>
+      )}
+
       {submitted && (
-        <p className="mt-2 text-xs text-royal-gold-light">
+        <p className="mt-3 text-sm text-royal-teal">
           Thank you! Your appreciation is awaiting approval and will appear here soon.
         </p>
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mt-2 space-y-2" onClick={(e) => e.stopPropagation()}>
+        <form onSubmit={handleSubmit} className="mt-3 space-y-2">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name (optional)"
             maxLength={80}
-            className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-neutral-400 focus:border-royal-gold-light focus:outline-none"
+            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-royal-maroon focus:outline-none"
           />
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Say something about this painting…"
+            placeholder="Say something about this gallery…"
             required
             maxLength={500}
-            rows={2}
-            className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-neutral-400 focus:border-royal-gold-light focus:outline-none"
+            rows={3}
+            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-royal-maroon focus:outline-none"
           />
-          {error && <p className="text-xs text-red-300">{error}</p>}
-          <div className="flex items-center gap-3">
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <div className="flex items-center gap-4">
             <button
               type="submit"
               disabled={pending}
-              className="rounded-full bg-royal-gold px-4 py-1.5 text-xs font-medium text-royal-ink transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
+              className="rounded-full bg-royal-maroon px-4 py-1.5 text-sm font-medium text-white transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
             >
               {pending ? "Posting…" : "Post appreciation"}
             </button>
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="text-xs text-neutral-400 hover:text-neutral-200"
+              className="text-sm text-neutral-500 hover:text-neutral-700"
             >
               Cancel
             </button>

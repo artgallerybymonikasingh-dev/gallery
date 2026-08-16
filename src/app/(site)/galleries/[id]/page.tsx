@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import PhotoGrid from "@/components/PhotoGrid";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import type { ArtworkWithAppreciations, GalleryWithArtist } from "@/lib/types";
+import GalleryAppreciationSection from "@/components/GalleryAppreciationSection";
+import type { Appreciation, ArtworkWithAppreciations, GalleryWithArtist } from "@/lib/types";
 
 export default async function GalleryPage({
   params,
@@ -15,9 +16,9 @@ export default async function GalleryPage({
 
   const { data: gallery } = await supabase
     .from("galleries")
-    .select("*, artist:artists(*)")
+    .select("*, artist:artists(*), appreciations(*)")
     .eq("id", id)
-    .single<GalleryWithArtist>();
+    .single<GalleryWithArtist & { appreciations: Appreciation[] }>();
 
   if (!gallery) notFound();
 
@@ -54,6 +55,9 @@ export default async function GalleryPage({
         artistName={gallery.artist.name}
         whatsappNumber={gallery.whatsapp_number}
       />
+
+      <GalleryAppreciationSection galleryId={gallery.id} appreciations={gallery.appreciations} />
+
       <WhatsAppFloatingButton phoneNumber={gallery.whatsapp_number} />
     </div>
   );
