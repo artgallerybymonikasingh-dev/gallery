@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import type { ExhibitionWithArtist } from "@/lib/types";
 
 function formatDateRange(start: string | null, end: string | null): string | null {
@@ -25,8 +26,11 @@ export default async function ExhibitionsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+      <Breadcrumbs items={[{ label: "Next Exhibition" }]} />
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Next Exhibition</h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
+          Next Exhibition
+        </h1>
         <p className="mt-1 text-sm text-neutral-500 sm:text-base">
           Upcoming and current shows across locations.
         </p>
@@ -41,9 +45,9 @@ export default async function ExhibitionsPage() {
             return (
               <div
                 key={ex.id}
-                className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm sm:p-5"
+                className="rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm sm:p-5"
               >
-                <h2 className="text-lg font-medium">{ex.title}</h2>
+                <h2 className="font-serif text-lg font-medium text-royal-maroon">{ex.title}</h2>
                 {ex.artist && <p className="mt-0.5 text-sm text-neutral-500">by {ex.artist.name}</p>}
                 <div className="mt-2 space-y-0.5 text-sm text-neutral-600">
                   {ex.location && <p>📍 {ex.location}</p>}

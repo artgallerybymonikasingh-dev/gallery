@@ -10,6 +10,7 @@ create table if not exists artists (
   email text,
   whatsapp_number text,
   address text,
+  cover_image_url text,
   created_at timestamptz not null default now()
 );
 
@@ -47,9 +48,19 @@ create table if not exists exhibitions (
   created_at timestamptz not null default now()
 );
 
+create table if not exists appreciations (
+  id uuid primary key default gen_random_uuid(),
+  artwork_id uuid not null references artworks(id) on delete cascade,
+  name text,
+  message text not null,
+  approved boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists galleries_artist_id_idx on galleries(artist_id);
 create index if not exists artworks_gallery_id_idx on artworks(gallery_id);
 create index if not exists exhibitions_artist_id_idx on exhibitions(artist_id);
+create index if not exists appreciations_artwork_id_idx on appreciations(artwork_id);
 
 -- Row Level Security: public visitors can only ever read. All writes go
 -- through Server Actions using the service-role key (see
@@ -60,11 +71,23 @@ alter table artists enable row level security;
 alter table galleries enable row level security;
 alter table artworks enable row level security;
 alter table exhibitions enable row level security;
+alter table appreciations enable row level security;
 
 create policy "Public read access" on artists for select using (true);
 create policy "Public read access" on galleries for select using (true);
 create policy "Public read access" on artworks for select using (true);
 create policy "Public read access" on exhibitions for select using (true);
+
+-- Appreciations are the one table the public can write to directly (with
+-- the anon key, respecting RLS — everything else writes through the
+-- service-role key from admin Server Actions). Visitors can only ever see
+-- approved messages and can only insert new ones already marked
+-- unapproved; only the admin (service role, bypassing RLS) can approve or
+-- delete them.
+create policy "Public read approved appreciations" on appreciations
+  for select using (approved = true);
+create policy "Public can submit appreciations" on appreciations
+  for insert with check (approved = false);
 
 -- Storage bucket for artwork photos (public read, service-role write only).
 insert into storage.buckets (id, name, public)

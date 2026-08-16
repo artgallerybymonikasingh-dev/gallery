@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { whatsappGeneralLink } from "@/lib/whatsapp";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import type { Artist } from "@/lib/types";
 
 export default async function ContactPage() {
@@ -12,8 +13,11 @@ export default async function ContactPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+      <Breadcrumbs items={[{ label: "Reach Us" }]} />
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Reach Us</h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
+          Reach Us
+        </h1>
         <p className="mt-1 text-sm text-neutral-500 sm:text-base">
           Get in touch with our artists directly.
         </p>
@@ -26,13 +30,13 @@ export default async function ContactPage() {
           {artists.map((artist) => (
             <div
               key={artist.id}
-              className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm sm:p-5"
+              className="rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm sm:p-5"
             >
-              <h2 className="text-lg font-medium">{artist.name}</h2>
+              <h2 className="font-serif text-lg font-medium text-royal-maroon">{artist.name}</h2>
               <div className="mt-3 space-y-2 text-sm">
                 {artist.email && (
                   <p>
-                    <a href={`mailto:${artist.email}`} className="text-blue-600 hover:underline">
+                    <a href={`mailto:${artist.email}`} className="text-royal-teal hover:underline">
                       {artist.email}
                     </a>
                   </p>

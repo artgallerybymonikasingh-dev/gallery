@@ -13,7 +13,7 @@ export default function ArtistTabs({ artists }: { artists: Artist[] }) {
 
   return (
     <div>
-      <div className="flex gap-2 overflow-x-auto border-b border-neutral-200 pb-px">
+      <div className="flex gap-2 overflow-x-auto border-b border-royal-gold/25 pb-px">
         {artists.map((artist) => (
           <button
             key={artist.id}
@@ -21,7 +21,7 @@ export default function ArtistTabs({ artists }: { artists: Artist[] }) {
             onClick={() => setActiveId(artist.id)}
             className={`shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
               artist.id === active.id
-                ? "border-neutral-900 text-neutral-900"
+                ? "border-royal-maroon text-royal-maroon"
                 : "border-transparent text-neutral-500 hover:text-neutral-700"
             }`}
           >
@@ -36,16 +36,18 @@ export default function ArtistTabs({ artists }: { artists: Artist[] }) {
           <img
             src={active.avatar_url}
             alt={active.name}
-            className="h-32 w-32 shrink-0 rounded-full object-cover sm:h-40 sm:w-40"
+            className="h-32 w-32 shrink-0 rounded-full object-cover ring-2 ring-royal-gold/40 sm:h-40 sm:w-40"
           />
         ) : (
-          <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-3xl font-semibold text-neutral-400 sm:h-40 sm:w-40">
+          <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-full bg-royal-cream-deep text-3xl font-semibold text-royal-maroon/50 sm:h-40 sm:w-40">
             {active.name.charAt(0)}
           </div>
         )}
 
         <div>
-          <h2 className="text-lg font-semibold sm:text-xl">{active.name}</h2>
+          <h2 className="font-serif text-lg font-semibold text-royal-maroon sm:text-xl">
+            {active.name}
+          </h2>
           {active.bio ? (
             <p className="mt-2 whitespace-pre-line text-neutral-700">{active.bio}</p>
           ) : (

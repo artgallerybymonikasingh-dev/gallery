@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import type { Artwork } from "@/lib/types";
+import type { ArtworkWithAppreciations } from "@/lib/types";
 import { whatsappEnquiryLink } from "@/lib/whatsapp";
+import AppreciationSection from "./AppreciationSection";
 
 export default function PhotoLightbox({
   artwork,
@@ -11,7 +12,7 @@ export default function PhotoLightbox({
   whatsappNumber,
   onClose,
 }: {
-  artwork: Artwork;
+  artwork: ArtworkWithAppreciations;
   artistName: string;
   whatsappNumber?: string | null;
   onClose: () => void;
@@ -99,6 +100,8 @@ export default function PhotoLightbox({
             </svg>
             Enquire on WhatsApp
           </a>
+
+          <AppreciationSection artworkId={artwork.id} appreciations={artwork.appreciations} />
         </div>
       </div>
     </div>,

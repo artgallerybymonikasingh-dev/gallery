@@ -33,12 +33,12 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-royal-cream px-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-lg border border-neutral-200 bg-white p-6 shadow-sm"
+        className="w-full max-w-sm rounded-lg border border-royal-gold/25 bg-white p-6 shadow-sm"
       >
-        <h1 className="text-lg font-semibold">Admin sign in</h1>
+        <h1 className="font-serif text-lg font-semibold text-royal-maroon">Admin sign in</h1>
         <p className="mt-1 text-sm text-neutral-500">Manage galleries and photos.</p>
 
         <label className="mt-5 block text-sm font-medium text-neutral-700">

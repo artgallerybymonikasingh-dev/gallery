@@ -5,9 +5,9 @@ export default function GalleryCard({ gallery }: { gallery: GalleryWithArtist })
   return (
     <Link
       href={`/galleries/${gallery.id}`}
-      className="group block overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+      className="group block overflow-hidden rounded-lg border border-royal-gold/25 bg-white shadow-sm transition-shadow hover:shadow-md hover:shadow-royal-gold/20"
     >
-      <div className="aspect-square w-full overflow-hidden bg-neutral-100">
+      <div className="aspect-square w-full overflow-hidden bg-royal-cream-deep">
         {gallery.cover_image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

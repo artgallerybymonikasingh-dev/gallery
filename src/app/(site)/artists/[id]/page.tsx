@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import GalleryCard from "@/components/GalleryCard";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import type { Artist, GalleryWithArtist } from "@/lib/types";
 
 export default async function ArtistPage({
@@ -29,6 +30,7 @@ export default async function ArtistPage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+      <Breadcrumbs items={[{ label: artist.name }]} />
       <div className="mb-6 flex items-center gap-4 sm:mb-8">
         {artist.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -38,14 +40,16 @@ export default async function ArtistPage({
             className="h-16 w-16 shrink-0 rounded-full object-cover sm:h-20 sm:w-20"
           />
         ) : (
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xl font-semibold text-neutral-400 sm:h-20 sm:w-20">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-royal-cream-deep text-xl font-semibold text-royal-maroon/60 sm:h-20 sm:w-20">
             {artist.name.charAt(0)}
           </div>
         )}
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{artist.name}</h1>
+          <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
+            {artist.name}
+          </h1>
           {artist.bio && (
-            <p className="mt-1 line-clamp-2 max-w-lg text-sm text-neutral-500">{artist.bio}</p>
+            <p className="mt-1 line-clamp-2 max-w-lg text-sm text-neutral-600">{artist.bio}</p>
           )}
         </div>
       </div>

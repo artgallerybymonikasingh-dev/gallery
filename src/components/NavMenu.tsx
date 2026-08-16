@@ -17,7 +17,11 @@ export default function NavMenu() {
       {/* Desktop */}
       <nav className="hidden items-center gap-6 text-sm font-medium sm:flex">
         {LINKS.map((link) => (
-          <Link key={link.href} href={link.href} className="text-neutral-600 hover:text-neutral-900">
+          <Link
+            key={link.href}
+            href={link.href}
+            className="text-royal-cream/90 transition-colors hover:text-royal-gold-light"
+          >
             {link.label}
           </Link>
         ))}
@@ -29,7 +33,7 @@ export default function NavMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
-        className="flex h-9 w-9 items-center justify-center rounded-md text-neutral-700 sm:hidden"
+        className="flex h-9 w-9 items-center justify-center rounded-md text-royal-cream sm:hidden"
       >
         {open ? (
           <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -43,14 +47,14 @@ export default function NavMenu() {
       </button>
 
       {open && (
-        <nav className="absolute inset-x-0 top-full border-b border-neutral-200 bg-neutral-50 px-4 py-3 sm:hidden">
+        <nav className="absolute inset-x-0 top-full border-b-2 border-royal-gold bg-royal-cream px-4 py-3 sm:hidden">
           <ul className="flex flex-col gap-1">
             {LINKS.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="block rounded-md px-2 py-2.5 text-base font-medium text-neutral-700 hover:bg-neutral-100"
+                  className="block rounded-md px-2 py-2.5 text-base font-medium text-royal-ink hover:bg-royal-cream-deep"
                 >
                   {link.label}
                 </Link>

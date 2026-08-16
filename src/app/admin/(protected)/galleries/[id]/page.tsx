@@ -2,7 +2,15 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Artwork, GalleryWithArtist } from "@/lib/types";
-import { createArtwork, deleteArtwork, updateArtwork, updateGallery } from "../../actions";
+import {
+  createArtwork,
+  deleteArtwork,
+  setArtistAvatar,
+  setArtistCover,
+  setGalleryCover,
+  updateArtwork,
+  updateGallery,
+} from "../../actions";
 import ConfirmSubmitButton from "@/components/admin/ConfirmSubmitButton";
 import ArtworkForm from "@/components/admin/ArtworkForm";
 
@@ -100,35 +108,92 @@ export default async function ManageGalleryPage({
           Photos ({artworks?.length ?? 0})
         </h2>
         <div className="mt-2 grid gap-4 sm:grid-cols-2">
-          {(artworks ?? []).map((artwork) => (
-            <div
-              key={artwork.id}
-              className="overflow-hidden rounded-lg border border-neutral-200 bg-white"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={artwork.image_url}
-                alt={artwork.title}
-                className="h-48 w-full object-cover"
-              />
-              <div className="p-3">
-                <ArtworkForm
-                  action={updateArtwork.bind(null, artwork.id, gallery.id)}
-                  artwork={artwork}
-                  submitLabel="Save"
-                  requireImage={false}
-                />
+          {(artworks ?? []).map((artwork) => {
+            const isGalleryCover = gallery.cover_image_url === artwork.image_url;
+            const isArtistCover = gallery.artist.cover_image_url === artwork.image_url;
+            const isArtistAvatar = gallery.artist.avatar_url === artwork.image_url;
+            return (
+              <div
+                key={artwork.id}
+                className="overflow-hidden rounded-lg border border-neutral-200 bg-white"
+              >
+                <div className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={artwork.image_url}
+                    alt={artwork.title}
+                    className="h-48 w-full object-cover"
+                  />
+                  {(isGalleryCover || isArtistCover || isArtistAvatar) && (
+                    <div className="absolute left-2 top-2 flex flex-wrap gap-1">
+                      {isGalleryCover && (
+                        <span className="rounded-full bg-neutral-900/80 px-2 py-0.5 text-[10px] font-medium text-white">
+                          Gallery cover
+                        </span>
+                      )}
+                      {isArtistCover && (
+                        <span className="rounded-full bg-neutral-900/80 px-2 py-0.5 text-[10px] font-medium text-white">
+                          Artist cover
+                        </span>
+                      )}
+                      {isArtistAvatar && (
+                        <span className="rounded-full bg-neutral-900/80 px-2 py-0.5 text-[10px] font-medium text-white">
+                          Profile photo
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2 border-b border-neutral-100 px-3 py-2">
+                  <form action={setGalleryCover.bind(null, gallery.id, artwork.image_url)}>
+                    <button
+                      type="submit"
+                      disabled={isGalleryCover}
+                      className="text-xs text-blue-600 hover:underline disabled:text-neutral-400 disabled:no-underline"
+                    >
+                      Set as gallery cover
+                    </button>
+                  </form>
+                  <span className="text-neutral-300">·</span>
+                  <form action={setArtistCover.bind(null, gallery.artist.id, gallery.id, artwork.image_url)}>
+                    <button
+                      type="submit"
+                      disabled={isArtistCover}
+                      className="text-xs text-blue-600 hover:underline disabled:text-neutral-400 disabled:no-underline"
+                    >
+                      Set as artist cover
+                    </button>
+                  </form>
+                  <span className="text-neutral-300">·</span>
+                  <form action={setArtistAvatar.bind(null, gallery.artist.id, gallery.id, artwork.image_url)}>
+                    <button
+                      type="submit"
+                      disabled={isArtistAvatar}
+                      className="text-xs text-blue-600 hover:underline disabled:text-neutral-400 disabled:no-underline"
+                    >
+                      Set as profile photo
+                    </button>
+                  </form>
+                </div>
+                <div className="p-3">
+                  <ArtworkForm
+                    action={updateArtwork.bind(null, artwork.id, gallery.id)}
+                    artwork={artwork}
+                    submitLabel="Save"
+                    requireImage={false}
+                  />
+                </div>
+                <form action={deleteArtwork.bind(null, artwork.id, gallery.id)} className="px-3 pb-3">
+                  <ConfirmSubmitButton
+                    confirmMessage={`Delete this photo? This cannot be undone.`}
+                    className="text-xs text-red-600 hover:underline"
+                  >
+                    Delete photo
+                  </ConfirmSubmitButton>
+                </form>
               </div>
-              <form action={deleteArtwork.bind(null, artwork.id, gallery.id)} className="px-3 pb-3">
-                <ConfirmSubmitButton
-                  confirmMessage={`Delete this photo? This cannot be undone.`}
-                  className="text-xs text-red-600 hover:underline"
-                >
-                  Delete photo
-                </ConfirmSubmitButton>
-              </form>
-            </div>
-          ))}
+            );
+          })}
           {(!artworks || artworks.length === 0) && (
             <p className="text-sm text-neutral-500">No photos yet — add one above.</p>
           )}

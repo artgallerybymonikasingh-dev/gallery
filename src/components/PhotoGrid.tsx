@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Artwork } from "@/lib/types";
+import type { ArtworkWithAppreciations } from "@/lib/types";
 import PhotoLightbox from "./PhotoLightbox";
 
 export default function PhotoGrid({
@@ -9,7 +9,7 @@ export default function PhotoGrid({
   artistName,
   whatsappNumber,
 }: {
-  artworks: Artwork[];
+  artworks: ArtworkWithAppreciations[];
   artistName: string;
   whatsappNumber?: string | null;
 }) {
@@ -28,7 +28,7 @@ export default function PhotoGrid({
             key={artwork.id}
             type="button"
             onClick={() => setSelectedId(artwork.id)}
-            className="group aspect-square overflow-hidden rounded-lg bg-neutral-100 text-left"
+            className="group aspect-square overflow-hidden rounded-lg border border-royal-gold/20 bg-royal-cream-deep text-left"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

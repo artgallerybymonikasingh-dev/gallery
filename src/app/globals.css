@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
+/* Royal, artistic palette inspired by the Madhubani/folk-art colours in
+   the gallery itself: deep wine and plum in the header, warm gold accents,
+   a warm ivory page background instead of stark white/grey. This is a
+   deliberate, committed look — not adapted for system dark mode. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8efdd;
+  --foreground: #2a1b1f;
 }
 
 @theme inline {
@@ -10,13 +14,16 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-royal-maroon: #6b1e2b;
+  --color-royal-maroon-dark: #4a1420;
+  --color-royal-plum: #3d1f4d;
+  --color-royal-gold: #b6862a;
+  --color-royal-gold-light: #e8c765;
+  --color-royal-teal: #1f4e4b;
+  --color-royal-cream: #f8efdd;
+  --color-royal-cream-deep: #efe0c2;
+  --color-royal-ink: #2a1b1f;
 }
 
 body {

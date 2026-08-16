@@ -382,3 +382,77 @@ export async function deleteArtwork(artworkId: string, galleryId: string) {
   revalidatePath(`/galleries/${galleryId}`);
   revalidatePath("/");
 }
+
+// ---------- Cover images ----------
+
+export async function setGalleryCover(galleryId: string, imageUrl: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { data: gallery, error } = await admin
+    .from("galleries")
+    .update({ cover_image_url: imageUrl })
+    .eq("id", galleryId)
+    .select("artist_id")
+    .single();
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/admin/galleries/${galleryId}`);
+  revalidatePath(`/galleries/${galleryId}`);
+  revalidatePath("/");
+  if (gallery?.artist_id) revalidatePath(`/artists/${gallery.artist_id}`);
+}
+
+export async function setArtistCover(artistId: string, galleryId: string, imageUrl: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("artists")
+    .update({ cover_image_url: imageUrl })
+    .eq("id", artistId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/admin/galleries/${galleryId}`);
+  revalidatePath("/");
+  revalidatePath(`/artists/${artistId}`);
+}
+
+export async function setArtistAvatar(artistId: string, galleryId: string, imageUrl: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("artists")
+    .update({ avatar_url: imageUrl })
+    .eq("id", artistId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/admin/galleries/${galleryId}`);
+  revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/about");
+  revalidatePath(`/artists/${artistId}`);
+}
+
+// ---------- Appreciations ----------
+
+export async function approveAppreciation(appreciationId: string, galleryId: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("appreciations")
+    .update({ approved: true })
+    .eq("id", appreciationId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/appreciations");
+  revalidatePath(`/galleries/${galleryId}`);
+}
+
+export async function deleteAppreciation(appreciationId: string, galleryId: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin.from("appreciations").delete().eq("id", appreciationId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/appreciations");
+  revalidatePath(`/galleries/${galleryId}`);
+}

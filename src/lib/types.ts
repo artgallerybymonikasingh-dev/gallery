@@ -6,6 +6,7 @@ export type Artist = {
   email: string | null;
   whatsapp_number: string | null;
   address: string | null;
+  cover_image_url: string | null;
   created_at: string;
 };
 
@@ -43,10 +44,25 @@ export type Exhibition = {
   created_at: string;
 };
 
+export type Appreciation = {
+  id: string;
+  artwork_id: string;
+  name: string | null;
+  message: string;
+  approved: boolean;
+  created_at: string;
+};
+
 export type GalleryWithArtist = Gallery & { artist: Artist };
 
 export type ArtworkWithContext = Artwork & {
   gallery: Gallery & { artist: Artist };
 };
 
+export type ArtworkWithAppreciations = Artwork & { appreciations: Appreciation[] };
+
 export type ExhibitionWithArtist = Exhibition & { artist: Artist | null };
+
+export type AppreciationWithArtwork = Appreciation & {
+  artwork: Artwork & { gallery: Gallery & { artist: Artist } };
+};

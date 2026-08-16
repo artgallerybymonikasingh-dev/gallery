@@ -16,7 +16,9 @@ export default async function HomePage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Artists</h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
+          Artists
+        </h1>
         <p className="mt-1 text-sm text-neutral-500 sm:text-base">
           Original artwork by Monika Singh and associated artists.
         </p>
@@ -30,7 +32,11 @@ export default async function HomePage() {
             <ArtistCard
               key={artist.id}
               artist={artist}
-              coverImageUrl={artist.galleries.find((g) => g.cover_image_url)?.cover_image_url ?? null}
+              coverImageUrl={
+                artist.cover_image_url ??
+                artist.galleries.find((g) => g.cover_image_url)?.cover_image_url ??
+                null
+              }
               galleryCount={artist.galleries.length}
             />
           ))}

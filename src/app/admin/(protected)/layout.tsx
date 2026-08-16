@@ -21,15 +21,18 @@ export default async function AdminProtectedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <header className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
-          <Link href="/admin" className="font-semibold">
+    <div className="min-h-screen bg-royal-cream">
+      <header className="border-b-2 border-royal-gold bg-white">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-6">
+          <Link href="/admin" className="font-serif font-semibold text-royal-maroon">
             Admin
           </Link>
-          <div className="flex items-center gap-4 text-sm">
+          <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1.5 text-sm">
             <Link href="/admin/exhibitions" className="text-neutral-500 hover:text-neutral-900">
               Exhibitions
+            </Link>
+            <Link href="/admin/appreciations" className="text-neutral-500 hover:text-neutral-900">
+              Appreciations
             </Link>
             <Link href="/" target="_blank" className="text-neutral-500 hover:text-neutral-900">
               View site

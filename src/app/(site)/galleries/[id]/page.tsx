@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import PhotoGrid from "@/components/PhotoGrid";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
-import type { Artwork, GalleryWithArtist } from "@/lib/types";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import type { ArtworkWithAppreciations, GalleryWithArtist } from "@/lib/types";
 
 export default async function GalleryPage({
   params,
@@ -22,16 +23,24 @@ export default async function GalleryPage({
 
   const { data: artworks } = await supabase
     .from("artworks")
-    .select("*")
+    .select("*, appreciations(*)")
     .eq("gallery_id", id)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true })
-    .returns<Artwork[]>();
+    .returns<ArtworkWithAppreciations[]>();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+      <Breadcrumbs
+        items={[
+          { label: gallery.artist.name, href: `/artists/${gallery.artist.id}` },
+          { label: gallery.title },
+        ]}
+      />
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{gallery.title}</h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
+          {gallery.title}
+        </h1>
         <p className="mt-1 text-sm text-neutral-500 sm:text-base">by {gallery.artist.name}</p>
         {gallery.description && (
           <p className="mt-3 max-w-2xl whitespace-pre-line text-neutral-700">
