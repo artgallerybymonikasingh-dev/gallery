@@ -55,8 +55,14 @@ export default function SearchGrid({
             gridClassName ?? "grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4"
           }
         >
-          {filtered.map((entry) => (
-            <div key={entry.key}>{entry.node}</div>
+          {filtered.map((entry, index) => (
+            <div
+              key={entry.key}
+              className="animate-fade-in-up"
+              style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
+            >
+              {entry.node}
+            </div>
           ))}
         </div>
       )}

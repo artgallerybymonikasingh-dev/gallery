@@ -28,15 +28,27 @@ export default function PhotoGrid({
             key={artwork.id}
             type="button"
             onClick={() => setSelectedId(artwork.id)}
-            className="group aspect-square overflow-hidden rounded-lg border border-royal-gold/20 bg-royal-cream-deep text-left"
+            className="group relative aspect-square overflow-hidden rounded-lg border border-royal-gold/20 bg-royal-cream-deep text-left shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-royal-gold/70 hover:shadow-lg hover:shadow-royal-maroon/15 active:translate-y-0 active:scale-[0.97]"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={artwork.image_url}
               alt={artwork.title}
               loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110 group-active:scale-105"
             />
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-royal-maroon/0 transition-colors duration-300 group-hover:bg-royal-maroon/25">
+              <svg
+                viewBox="0 0 24 24"
+                className="h-8 w-8 scale-75 text-white opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
+              </svg>
+            </div>
           </button>
         ))}
       </div>
