@@ -7,6 +7,7 @@ import type {
 } from "@/lib/types";
 import { approveAppreciation, deleteAppreciation } from "../actions";
 import ConfirmSubmitButton from "@/components/admin/ConfirmSubmitButton";
+import AppreciationTabs, { type AppreciationTab } from "@/components/admin/AppreciationTabs";
 
 function Row({
   imageUrl,
@@ -29,11 +30,7 @@ function Row({
     <div className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 sm:flex-row sm:items-center">
       {imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={imageUrl}
-          alt=""
-          className="h-20 w-20 shrink-0 rounded-md object-cover"
-        />
+        <img src={imageUrl} alt="" className="h-20 w-20 shrink-0 rounded-md object-cover" />
       )}
       <div className="flex-1 text-sm">
         <p className="text-xs text-neutral-500">{contextLine}</p>
@@ -51,12 +48,40 @@ function Row({
         )}
         <form action={deleteAppreciation.bind(null, appreciationId, publicPath)}>
           <ConfirmSubmitButton
-            confirmMessage={showApprove ? "Reject and delete this message?" : "Remove this message from the site?"}
+            confirmMessage={
+              showApprove ? "Reject and delete this message?" : "Remove this message from the site?"
+            }
             className="text-red-600 hover:underline"
           >
             {showApprove ? "Reject" : "Remove"}
           </ConfirmSubmitButton>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function TabContent({
+  pending,
+  approved,
+  renderRow,
+}: {
+  pending: { id: string }[];
+  approved: { id: string }[];
+  renderRow: (item: { id: string }, showApprove: boolean) => React.ReactNode;
+}) {
+  return (
+    <div>
+      <h3 className="text-sm font-medium text-neutral-700">Pending ({pending.length})</h3>
+      <div className="mt-2 space-y-3">
+        {pending.map((a) => renderRow(a, true))}
+        {pending.length === 0 && <p className="text-sm text-neutral-500">Nothing waiting for approval.</p>}
+      </div>
+
+      <h3 className="mt-6 text-sm font-medium text-neutral-700">Approved ({approved.length})</h3>
+      <div className="mt-2 space-y-3">
+        {approved.map((a) => renderRow(a, false))}
+        {approved.length === 0 && <p className="text-sm text-neutral-500">No approved messages yet.</p>}
       </div>
     </div>
   );
@@ -97,9 +122,93 @@ export default async function AdminAppreciationsPage() {
   const artistPending = (artistAppreciations ?? []).filter((a) => !a.approved);
   const artistApproved = (artistAppreciations ?? []).filter((a) => a.approved);
 
+  const tabs: AppreciationTab[] = [
+    {
+      key: "paintings",
+      label: "Paintings",
+      icon: "🖼️",
+      pendingCount: artworkPending.length,
+      content: (
+        <TabContent
+          pending={artworkPending}
+          approved={artworkApproved}
+          renderRow={(a, showApprove) => {
+            const item = a as AppreciationWithArtwork;
+            return (
+              <Row
+                key={item.id}
+                imageUrl={item.artwork.image_url}
+                contextLine={`${item.artwork.title} — ${item.artwork.gallery.title} by ${item.artwork.gallery.artist.name}`}
+                name={item.name}
+                message={item.message}
+                appreciationId={item.id}
+                publicPath={`/galleries/${item.artwork.gallery_id}`}
+                showApprove={showApprove}
+              />
+            );
+          }}
+        />
+      ),
+    },
+    {
+      key: "galleries",
+      label: "Galleries",
+      icon: "🏛️",
+      pendingCount: galleryPending.length,
+      content: (
+        <TabContent
+          pending={galleryPending}
+          approved={galleryApproved}
+          renderRow={(a, showApprove) => {
+            const item = a as AppreciationWithGallery;
+            return (
+              <Row
+                key={item.id}
+                imageUrl={item.gallery.cover_image_url}
+                contextLine={`${item.gallery.title} by ${item.gallery.artist.name}`}
+                name={item.name}
+                message={item.message}
+                appreciationId={item.id}
+                publicPath={`/galleries/${item.gallery.id}`}
+                showApprove={showApprove}
+              />
+            );
+          }}
+        />
+      ),
+    },
+    {
+      key: "artists",
+      label: "Artists",
+      icon: "👤",
+      pendingCount: artistPending.length,
+      content: (
+        <TabContent
+          pending={artistPending}
+          approved={artistApproved}
+          renderRow={(a, showApprove) => {
+            const item = a as AppreciationWithArtistOnly;
+            return (
+              <Row
+                key={item.id}
+                imageUrl={item.artist.avatar_url}
+                contextLine={item.artist.name}
+                name={item.name}
+                message={item.message}
+                appreciationId={item.id}
+                publicPath={`/artists/${item.artist.id}`}
+                showApprove={showApprove}
+              />
+            );
+          }}
+        />
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-10">
-      <div>
+    <div>
+      <div className="mb-6">
         <Link href="/admin" className="text-sm text-neutral-500 hover:underline">
           ← Back to dashboard
         </Link>
@@ -109,137 +218,7 @@ export default async function AdminAppreciationsPage() {
         </p>
       </div>
 
-      <section>
-        <h2 className="text-lg font-semibold">🖼️ Painting appreciations</h2>
-
-        <h3 className="mt-4 text-sm font-medium text-neutral-700">Pending ({artworkPending.length})</h3>
-        <div className="mt-2 space-y-3">
-          {artworkPending.map((a) => (
-            <Row
-              key={a.id}
-              imageUrl={a.artwork.image_url}
-              contextLine={`${a.artwork.title} — ${a.artwork.gallery.title} by ${a.artwork.gallery.artist.name}`}
-              name={a.name}
-              message={a.message}
-              appreciationId={a.id}
-              publicPath={`/galleries/${a.artwork.gallery_id}`}
-              showApprove
-            />
-          ))}
-          {artworkPending.length === 0 && (
-            <p className="text-sm text-neutral-500">Nothing waiting for approval.</p>
-          )}
-        </div>
-
-        <h3 className="mt-6 text-sm font-medium text-neutral-700">
-          Approved ({artworkApproved.length})
-        </h3>
-        <div className="mt-2 space-y-3">
-          {artworkApproved.map((a) => (
-            <Row
-              key={a.id}
-              imageUrl={a.artwork.image_url}
-              contextLine={`${a.artwork.title} — ${a.artwork.gallery.title} by ${a.artwork.gallery.artist.name}`}
-              name={a.name}
-              message={a.message}
-              appreciationId={a.id}
-              publicPath={`/galleries/${a.artwork.gallery_id}`}
-              showApprove={false}
-            />
-          ))}
-          {artworkApproved.length === 0 && (
-            <p className="text-sm text-neutral-500">No approved messages yet.</p>
-          )}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-lg font-semibold">🏛️ Gallery appreciations</h2>
-
-        <h3 className="mt-4 text-sm font-medium text-neutral-700">Pending ({galleryPending.length})</h3>
-        <div className="mt-2 space-y-3">
-          {galleryPending.map((a) => (
-            <Row
-              key={a.id}
-              imageUrl={a.gallery.cover_image_url}
-              contextLine={`${a.gallery.title} by ${a.gallery.artist.name}`}
-              name={a.name}
-              message={a.message}
-              appreciationId={a.id}
-              publicPath={`/galleries/${a.gallery.id}`}
-              showApprove
-            />
-          ))}
-          {galleryPending.length === 0 && (
-            <p className="text-sm text-neutral-500">Nothing waiting for approval.</p>
-          )}
-        </div>
-
-        <h3 className="mt-6 text-sm font-medium text-neutral-700">
-          Approved ({galleryApproved.length})
-        </h3>
-        <div className="mt-2 space-y-3">
-          {galleryApproved.map((a) => (
-            <Row
-              key={a.id}
-              imageUrl={a.gallery.cover_image_url}
-              contextLine={`${a.gallery.title} by ${a.gallery.artist.name}`}
-              name={a.name}
-              message={a.message}
-              appreciationId={a.id}
-              publicPath={`/galleries/${a.gallery.id}`}
-              showApprove={false}
-            />
-          ))}
-          {galleryApproved.length === 0 && (
-            <p className="text-sm text-neutral-500">No approved messages yet.</p>
-          )}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-lg font-semibold">👤 Artist appreciations</h2>
-
-        <h3 className="mt-4 text-sm font-medium text-neutral-700">Pending ({artistPending.length})</h3>
-        <div className="mt-2 space-y-3">
-          {artistPending.map((a) => (
-            <Row
-              key={a.id}
-              imageUrl={a.artist.avatar_url}
-              contextLine={a.artist.name}
-              name={a.name}
-              message={a.message}
-              appreciationId={a.id}
-              publicPath={`/artists/${a.artist.id}`}
-              showApprove
-            />
-          ))}
-          {artistPending.length === 0 && (
-            <p className="text-sm text-neutral-500">Nothing waiting for approval.</p>
-          )}
-        </div>
-
-        <h3 className="mt-6 text-sm font-medium text-neutral-700">
-          Approved ({artistApproved.length})
-        </h3>
-        <div className="mt-2 space-y-3">
-          {artistApproved.map((a) => (
-            <Row
-              key={a.id}
-              imageUrl={a.artist.avatar_url}
-              contextLine={a.artist.name}
-              name={a.name}
-              message={a.message}
-              appreciationId={a.id}
-              publicPath={`/artists/${a.artist.id}`}
-              showApprove={false}
-            />
-          ))}
-          {artistApproved.length === 0 && (
-            <p className="text-sm text-neutral-500">No approved messages yet.</p>
-          )}
-        </div>
-      </section>
+      <AppreciationTabs tabs={tabs} />
     </div>
   );
 }

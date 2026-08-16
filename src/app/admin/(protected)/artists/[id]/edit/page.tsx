@@ -22,8 +22,8 @@ export default async function EditArtistPage({
 
   return (
     <div className="max-w-md">
-      <Link href="/admin" className="text-sm text-neutral-500 hover:underline">
-        ← Back to dashboard
+      <Link href="/admin/artists" className="text-sm text-neutral-500 hover:underline">
+        ← Back to artists
       </Link>
       <h1 className="mt-2 text-xl font-semibold">Edit artist</h1>
 

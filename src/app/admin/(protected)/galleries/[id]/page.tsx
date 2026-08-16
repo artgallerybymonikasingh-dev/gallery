@@ -40,11 +40,16 @@ export default async function ManageGalleryPage({
   return (
     <div className="space-y-10">
       <div>
-        <Link href="/admin" className="text-sm text-neutral-500 hover:underline">
-          ← Back to dashboard
+        <Link href="/admin/galleries" className="text-sm text-neutral-500 hover:underline">
+          ← Back to galleries
         </Link>
         <h1 className="mt-2 text-xl font-semibold">{gallery.title}</h1>
-        <p className="text-sm text-neutral-500">by {gallery.artist.name}</p>
+        <p className="text-sm text-neutral-500">
+          by{" "}
+          <Link href={`/admin/artists/${gallery.artist.id}/edit`} className="text-blue-600 hover:underline">
+            {gallery.artist.name}
+          </Link>
+        </p>
       </div>
 
       <section>

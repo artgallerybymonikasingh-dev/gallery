@@ -1,185 +1,84 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { Artist, GalleryWithArtist } from "@/lib/types";
-import { createArtist, createGallery, deleteArtist, deleteGallery } from "./actions";
-import ConfirmSubmitButton from "@/components/admin/ConfirmSubmitButton";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
+  // Pending-appreciation count needs the service-role client since RLS
+  // only exposes approved=true rows to the anon-key client.
+  const admin = createAdminClient();
 
-  const { data: artists } = await supabase
-    .from("artists")
-    .select("*")
-    .order("name")
-    .returns<Artist[]>();
+  const [{ count: artistCount }, { count: galleryCount }, { count: exhibitionCount }, { count: pendingCount }] =
+    await Promise.all([
+      supabase.from("artists").select("*", { count: "exact", head: true }),
+      supabase.from("galleries").select("*", { count: "exact", head: true }),
+      supabase.from("exhibitions").select("*", { count: "exact", head: true }),
+      admin.from("appreciations").select("*", { count: "exact", head: true }).eq("approved", false),
+    ]);
 
-  const { data: galleries } = await supabase
-    .from("galleries")
-    .select("*, artist:artists(*)")
-    .order("created_at", { ascending: false })
-    .returns<GalleryWithArtist[]>();
+  const cards = [
+    {
+      href: "/admin/artists",
+      icon: "👤",
+      title: "Artists",
+      description: "Profiles, bios, and contact details.",
+      count: artistCount ?? 0,
+    },
+    {
+      href: "/admin/galleries",
+      icon: "🏛️",
+      title: "Galleries",
+      description: "Create galleries, then add photos inside each.",
+      count: galleryCount ?? 0,
+    },
+    {
+      href: "/admin/exhibitions",
+      icon: "🖼️",
+      title: "Exhibitions",
+      description: "Upcoming and current shows.",
+      count: exhibitionCount ?? 0,
+    },
+    {
+      href: "/admin/appreciations",
+      icon: "💛",
+      title: "Appreciations",
+      description: "Moderate visitor messages.",
+      count: pendingCount ?? 0,
+      countLabel: "pending",
+    },
+  ];
 
   return (
-    <div className="space-y-10">
-      <section>
-        <h1 className="text-xl font-semibold">Galleries</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Create a gallery, then open it to add photos.
-        </p>
+    <div>
+      <h1 className="text-xl font-semibold">Dashboard</h1>
+      <p className="mt-1 text-sm text-neutral-500">Manage the gallery site from here.</p>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-          {(galleries ?? []).map((gallery) => (
-            <div
-              key={gallery.id}
-              className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm"
-            >
-              <p className="font-medium">{gallery.title}</p>
-              <p className="text-sm text-neutral-500">{gallery.artist.name}</p>
-              <div className="mt-3 flex items-center gap-3 text-sm">
-                <Link href={`/admin/galleries/${gallery.id}`} className="text-blue-600 hover:underline">
-                  Manage
-                </Link>
-                <form action={deleteGallery.bind(null, gallery.id)}>
-                  <ConfirmSubmitButton
-                    confirmMessage={`Delete gallery "${gallery.title}" and all its photos? This cannot be undone.`}
-                    className="text-red-600 hover:underline"
-                  >
-                    Delete
-                  </ConfirmSubmitButton>
-                </form>
-              </div>
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        {cards.map((card) => (
+          <Link
+            key={card.href}
+            href={card.href}
+            className="rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-2xl">{card.icon}</span>
+              {card.count > 0 && (
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                    card.countLabel
+                      ? "bg-royal-maroon text-white"
+                      : "bg-royal-cream-deep text-royal-ink"
+                  }`}
+                >
+                  {card.count} {card.countLabel ?? ""}
+                </span>
+              )}
             </div>
-          ))}
-          {(!galleries || galleries.length === 0) && (
-            <p className="text-sm text-neutral-500">No galleries yet — create one below.</p>
-          )}
-        </div>
-
-        <form
-          action={createGallery}
-          className="mt-5 max-w-md space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
-        >
-          <h2 className="text-sm font-medium">Add gallery</h2>
-          <select
-            name="artist_id"
-            required
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          >
-            <option value="">Select artist…</option>
-            {(artists ?? []).map((artist) => (
-              <option key={artist.id} value={artist.id}>
-                {artist.name}
-              </option>
-            ))}
-          </select>
-          <input
-            name="title"
-            required
-            placeholder="Gallery title"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
-          <textarea
-            name="description"
-            placeholder="Description (optional)"
-            rows={2}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
-          <label className="block text-xs text-neutral-500">
-            WhatsApp number override (optional — digits only with country code, e.g. 919876543210)
-            <input
-              name="whatsapp_number"
-              placeholder="Leave blank to use the site-wide number"
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-            />
-          </label>
-          <button
-            type="submit"
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
-          >
-            Add gallery
-          </button>
-        </form>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold">Artists</h2>
-        <p className="mt-1 text-sm text-neutral-500">
-          Add Monika Singh and any associated artists here before creating their galleries.
-        </p>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-          {(artists ?? []).map((artist) => (
-            <div
-              key={artist.id}
-              className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm"
-            >
-              <p className="font-medium">{artist.name}</p>
-              {artist.bio && <p className="mt-1 line-clamp-2 text-sm text-neutral-500">{artist.bio}</p>}
-              <div className="mt-3 flex items-center gap-3 text-sm">
-                <Link href={`/admin/artists/${artist.id}/edit`} className="text-blue-600 hover:underline">
-                  Edit
-                </Link>
-                <form action={deleteArtist.bind(null, artist.id)}>
-                  <ConfirmSubmitButton
-                    confirmMessage={`Delete artist "${artist.name}" and all their galleries and photos? This cannot be undone.`}
-                    className="text-red-600 hover:underline"
-                  >
-                    Delete
-                  </ConfirmSubmitButton>
-                </form>
-              </div>
-            </div>
-          ))}
-          {(!artists || artists.length === 0) && (
-            <p className="text-sm text-neutral-500">No artists yet — add one below.</p>
-          )}
-        </div>
-
-        <form
-          action={createArtist}
-          className="mt-5 max-w-md space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
-        >
-          <h3 className="text-sm font-medium">Add artist</h3>
-          <input
-            name="name"
-            required
-            placeholder="Artist name"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
-          <label className="block text-xs text-neutral-500">
-            Profile photo (optional, shown on About Us)
-            <input type="file" name="avatar" accept="image/*" className="mt-1 w-full text-sm" />
-          </label>
-          <textarea
-            name="bio"
-            placeholder="Bio for About Us page (optional)"
-            rows={2}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
-          <input
-            name="email"
-            type="email"
-            placeholder="Email (optional, shown on Reach Us)"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
-          <input
-            name="whatsapp_number"
-            placeholder="WhatsApp number (optional, e.g. 919876543210)"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
-          <input
-            name="address"
-            placeholder="Address (optional)"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
-          <button
-            type="submit"
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
-          >
-            Add artist
-          </button>
-        </form>
-      </section>
+            <p className="mt-2 font-serif text-lg font-medium text-royal-maroon">{card.title}</p>
+            <p className="mt-0.5 text-sm text-neutral-500">{card.description}</p>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
