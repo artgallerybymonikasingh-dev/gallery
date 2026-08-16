@@ -433,8 +433,11 @@ export async function setArtistAvatar(artistId: string, galleryId: string, image
 }
 
 // ---------- Appreciations ----------
+// `publicPath` is the page the appreciation will appear on once approved —
+// /galleries/[id] for painting- and gallery-level ones, /artists/[id] for
+// artist-level ones — so the caller passes whichever applies.
 
-export async function approveAppreciation(appreciationId: string, galleryId: string) {
+export async function approveAppreciation(appreciationId: string, publicPath: string) {
   await requireAdmin();
   const admin = createAdminClient();
   const { error } = await admin
@@ -444,15 +447,15 @@ export async function approveAppreciation(appreciationId: string, galleryId: str
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/appreciations");
-  revalidatePath(`/galleries/${galleryId}`);
+  revalidatePath(publicPath);
 }
 
-export async function deleteAppreciation(appreciationId: string, galleryId: string) {
+export async function deleteAppreciation(appreciationId: string, publicPath: string) {
   await requireAdmin();
   const admin = createAdminClient();
   const { error } = await admin.from("appreciations").delete().eq("id", appreciationId);
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/appreciations");
-  revalidatePath(`/galleries/${galleryId}`);
+  revalidatePath(publicPath);
 }

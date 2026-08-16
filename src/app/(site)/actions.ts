@@ -54,3 +54,21 @@ export async function submitGalleryAppreciation(
   if (error) return { error: "Something went wrong. Please try again." };
   return { success: true };
 }
+
+export async function submitArtistAppreciation(
+  artistId: string,
+  formData: FormData
+): Promise<{ success: true } | { error: string }> {
+  const parsed = validateMessage(formData);
+  if ("error" in parsed) return parsed;
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("appreciations").insert({
+    artist_id: artistId,
+    name: parsed.name,
+    message: parsed.message,
+  });
+
+  if (error) return { error: "Something went wrong. Please try again." };
+  return { success: true };
+}

@@ -44,12 +44,13 @@ export type Exhibition = {
   created_at: string;
 };
 
-// Exactly one of artwork_id / gallery_id is set — an appreciation targets
-// either a specific painting or a gallery as a whole.
+// Exactly one of artwork_id / gallery_id / artist_id is set — an
+// appreciation targets a specific painting, a gallery, or an artist.
 export type Appreciation = {
   id: string;
   artwork_id: string | null;
   gallery_id: string | null;
+  artist_id: string | null;
   name: string | null;
   message: string;
   approved: boolean;
@@ -72,4 +73,8 @@ export type AppreciationWithArtwork = Appreciation & {
 
 export type AppreciationWithGallery = Appreciation & {
   gallery: Gallery & { artist: Artist };
+};
+
+export type AppreciationWithArtistOnly = Appreciation & {
+  artist: Artist;
 };

@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import PhotoGrid from "@/components/PhotoGrid";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import GalleryAppreciationSection from "@/components/GalleryAppreciationSection";
+import AppreciationBox from "@/components/AppreciationBox";
+import { submitGalleryAppreciation } from "../../actions";
 import type { Appreciation, ArtworkWithAppreciations, GalleryWithArtist } from "@/lib/types";
 
 export default async function GalleryPage({
@@ -56,7 +57,15 @@ export default async function GalleryPage({
         whatsappNumber={gallery.whatsapp_number}
       />
 
-      <GalleryAppreciationSection galleryId={gallery.id} appreciations={gallery.appreciations} />
+      <AppreciationBox
+        targetId={gallery.id}
+        appreciations={gallery.appreciations}
+        submitAction={submitGalleryAppreciation}
+        heading="Appreciations for this gallery"
+        ctaLabel="Appreciate this gallery"
+        placeholder="Say something about this gallery…"
+        emptyText="Be the first to share your thoughts on this gallery."
+      />
 
       <WhatsAppFloatingButton phoneNumber={gallery.whatsapp_number} />
     </div>

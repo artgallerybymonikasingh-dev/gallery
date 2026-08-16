@@ -2,14 +2,25 @@
 
 import { useState, useTransition } from "react";
 import type { Appreciation } from "@/lib/types";
-import { submitGalleryAppreciation } from "@/app/(site)/actions";
 
-export default function GalleryAppreciationSection({
-  galleryId,
+type SubmitResult = { success: true } | { error: string };
+
+export default function AppreciationBox({
+  targetId,
   appreciations,
+  submitAction,
+  heading,
+  ctaLabel,
+  placeholder,
+  emptyText,
 }: {
-  galleryId: string;
+  targetId: string;
   appreciations: Appreciation[];
+  submitAction: (targetId: string, formData: FormData) => Promise<SubmitResult>;
+  heading: string;
+  ctaLabel: string;
+  placeholder: string;
+  emptyText: string;
 }) {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -27,7 +38,7 @@ export default function GalleryAppreciationSection({
     formData.set("message", message);
 
     startTransition(async () => {
-      const result = await submitGalleryAppreciation(galleryId, formData);
+      const result = await submitAction(targetId, formData);
       if ("error" in result) {
         setError(result.error);
       } else {
@@ -43,7 +54,7 @@ export default function GalleryAppreciationSection({
     <div className="mt-10 rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-serif text-lg font-medium text-royal-maroon">
-          Appreciations for this gallery{" "}
+          {heading}{" "}
           {appreciations.length > 0 && (
             <span className="font-sans text-sm font-normal text-neutral-500">
               ({appreciations.length})
@@ -56,7 +67,7 @@ export default function GalleryAppreciationSection({
             onClick={() => setShowForm(true)}
             className="text-sm font-medium text-royal-teal hover:underline"
           >
-            💛 Appreciate this gallery
+            💛 {ctaLabel}
           </button>
         )}
       </div>
@@ -74,9 +85,7 @@ export default function GalleryAppreciationSection({
       )}
 
       {appreciations.length === 0 && !showForm && !submitted && (
-        <p className="mt-2 text-sm text-neutral-500">
-          Be the first to share your thoughts on this gallery.
-        </p>
+        <p className="mt-2 text-sm text-neutral-500">{emptyText}</p>
       )}
 
       {submitted && (
@@ -97,7 +106,7 @@ export default function GalleryAppreciationSection({
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Say something about this gallery…"
+            placeholder={placeholder}
             required
             maxLength={500}
             rows={3}

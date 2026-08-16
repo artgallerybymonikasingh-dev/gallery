@@ -3,7 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import GalleryCard from "@/components/GalleryCard";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import type { Artist, GalleryWithArtist } from "@/lib/types";
+import AppreciationBox from "@/components/AppreciationBox";
+import { submitArtistAppreciation } from "../../actions";
+import type { Appreciation, Artist, GalleryWithArtist } from "@/lib/types";
 
 export default async function ArtistPage({
   params,
@@ -15,9 +17,9 @@ export default async function ArtistPage({
 
   const { data: artist } = await supabase
     .from("artists")
-    .select("*")
+    .select("*, appreciations(*)")
     .eq("id", id)
-    .single<Artist>();
+    .single<Artist & { appreciations: Appreciation[] }>();
 
   if (!artist) notFound();
 
@@ -63,6 +65,17 @@ export default async function ArtistPage({
           ))}
         </div>
       )}
+
+      <AppreciationBox
+        targetId={artist.id}
+        appreciations={artist.appreciations}
+        submitAction={submitArtistAppreciation}
+        heading="Appreciations for this artist"
+        ctaLabel="Appreciate this artist"
+        placeholder="Say something about this artist's work…"
+        emptyText="Be the first to share your thoughts on this artist."
+      />
+
       <WhatsAppFloatingButton phoneNumber={artist.whatsapp_number} />
     </div>
   );
