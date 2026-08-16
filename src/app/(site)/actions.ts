@@ -8,6 +8,16 @@ import { createClient } from "@/lib/supabase/server";
 // rows, so a visitor can never make their own message go live; only the
 // admin (service role, in admin/actions.ts) can approve or delete one.
 
+// A hidden field named "website" that's invisible and unreachable by tab
+// order for real visitors, but that simple bots tend to auto-fill. Any
+// non-empty value here means "not a human" — we pretend to succeed so the
+// bot doesn't learn to look elsewhere, without ever touching the database.
+const HONEYPOT_FIELD = "website";
+
+function isBot(formData: FormData): boolean {
+  return String(formData.get(HONEYPOT_FIELD) ?? "").trim().length > 0;
+}
+
 function validateMessage(formData: FormData): { name: string | null; message: string } | { error: string } {
   const message = String(formData.get("message") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
@@ -23,6 +33,8 @@ export async function submitArtworkAppreciation(
   artworkId: string,
   formData: FormData
 ): Promise<{ success: true } | { error: string }> {
+  if (isBot(formData)) return { success: true };
+
   const parsed = validateMessage(formData);
   if ("error" in parsed) return parsed;
 
@@ -41,6 +53,8 @@ export async function submitGalleryAppreciation(
   galleryId: string,
   formData: FormData
 ): Promise<{ success: true } | { error: string }> {
+  if (isBot(formData)) return { success: true };
+
   const parsed = validateMessage(formData);
   if ("error" in parsed) return parsed;
 
@@ -59,6 +73,8 @@ export async function submitArtistAppreciation(
   artistId: string,
   formData: FormData
 ): Promise<{ success: true } | { error: string }> {
+  if (isBot(formData)) return { success: true };
+
   const parsed = validateMessage(formData);
   if ("error" in parsed) return parsed;
 

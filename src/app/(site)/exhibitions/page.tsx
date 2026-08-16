@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import type { ExhibitionWithArtist } from "@/lib/types";
+
+export const metadata: Metadata = {
+  title: "Next Exhibition",
+  description: "Upcoming and current shows by Chitrashala's artists.",
+};
 
 function formatDateRange(start: string | null, end: string | null): string | null {
   const fmt = (d: string) =>

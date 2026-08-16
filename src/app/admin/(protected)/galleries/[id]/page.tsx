@@ -3,8 +3,10 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Artwork, GalleryWithArtist } from "@/lib/types";
 import {
+  bulkCreateArtworks,
   createArtwork,
   deleteArtwork,
+  moveArtwork,
   setArtistAvatar,
   setArtistCover,
   setGalleryCover,
@@ -34,6 +36,7 @@ export default async function ManageGalleryPage({
     .from("artworks")
     .select("*")
     .eq("gallery_id", id)
+    .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true })
     .returns<Artwork[]>();
 
@@ -109,14 +112,43 @@ export default async function ManageGalleryPage({
       </section>
 
       <section>
+        <h2 className="text-sm font-medium text-neutral-700">Bulk upload</h2>
+        <p className="mt-1 text-xs text-neutral-500">
+          Upload several photos at once — each is saved as &quot;Untitled&quot; with no
+          description; edit the details individually afterward.
+        </p>
+        <form
+          action={bulkCreateArtworks.bind(null, gallery.id)}
+          className="mt-2 max-w-md space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
+        >
+          <input
+            type="file"
+            name="images"
+            accept="image/*"
+            multiple
+            required
+            className="w-full text-sm"
+          />
+          <button
+            type="submit"
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+          >
+            Upload photos
+          </button>
+        </form>
+      </section>
+
+      <section>
         <h2 className="text-sm font-medium text-neutral-700">
           Photos ({artworks?.length ?? 0})
         </h2>
         <div className="mt-2 grid gap-4 sm:grid-cols-2">
-          {(artworks ?? []).map((artwork) => {
+          {(artworks ?? []).map((artwork, index) => {
             const isGalleryCover = gallery.cover_image_url === artwork.image_url;
             const isArtistCover = gallery.artist.cover_image_url === artwork.image_url;
             const isArtistAvatar = gallery.artist.avatar_url === artwork.image_url;
+            const isFirst = index === 0;
+            const isLast = index === (artworks?.length ?? 1) - 1;
             return (
               <div
                 key={artwork.id}
@@ -148,6 +180,28 @@ export default async function ManageGalleryPage({
                       )}
                     </div>
                   )}
+                  <div className="absolute right-2 top-2 flex gap-1">
+                    <form action={moveArtwork.bind(null, artwork.id, gallery.id, "up")}>
+                      <button
+                        type="submit"
+                        disabled={isFirst}
+                        aria-label="Move photo earlier"
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow disabled:opacity-40"
+                      >
+                        ↑
+                      </button>
+                    </form>
+                    <form action={moveArtwork.bind(null, artwork.id, gallery.id, "down")}>
+                      <button
+                        type="submit"
+                        disabled={isLast}
+                        aria-label="Move photo later"
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow disabled:opacity-40"
+                      >
+                        ↓
+                      </button>
+                    </form>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2 border-b border-neutral-100 px-3 py-2">
                   <form action={setGalleryCover.bind(null, gallery.id, artwork.image_url)}>

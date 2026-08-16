@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import ArtistTabs from "@/components/ArtistTabs";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import type { Artist } from "@/lib/types";
+
+export const metadata: Metadata = {
+  title: "About Us",
+  description: "Meet the artists behind Chitrashala.",
+};
 
 export default async function AboutPage() {
   const supabase = await createClient();

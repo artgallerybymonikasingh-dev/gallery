@@ -25,6 +25,7 @@ export default function AppreciationBox({
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
+  const [website, setWebsite] = useState(""); // honeypot — real visitors never fill this in
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -36,6 +37,7 @@ export default function AppreciationBox({
     const formData = new FormData();
     formData.set("name", name);
     formData.set("message", message);
+    formData.set("website", website);
 
     startTransition(async () => {
       const result = await submitAction(targetId, formData);
@@ -96,6 +98,16 @@ export default function AppreciationBox({
 
       {showForm && (
         <form onSubmit={handleSubmit} className="mt-3 space-y-2">
+          <input
+            type="text"
+            name="website"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            className="absolute -left-[9999px] h-0 w-0 opacity-0"
+          />
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}

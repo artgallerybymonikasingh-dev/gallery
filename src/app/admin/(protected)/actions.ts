@@ -224,6 +224,14 @@ export async function deleteGallery(galleryId: string) {
 
 // ---------- Artworks ----------
 
+async function nextSortOrder(admin: ReturnType<typeof createAdminClient>, galleryId: string) {
+  const { count } = await admin
+    .from("artworks")
+    .select("*", { count: "exact", head: true })
+    .eq("gallery_id", galleryId);
+  return count ?? 0;
+}
+
 export async function createArtwork(galleryId: string, formData: FormData) {
   await requireAdmin();
 
@@ -240,6 +248,7 @@ export async function createArtwork(galleryId: string, formData: FormData) {
   const { path, publicUrl } = await uploadArtworkImage(file, galleryId);
 
   const admin = createAdminClient();
+  const sortOrder = await nextSortOrder(admin, galleryId);
   const { error: insertError } = await admin.from("artworks").insert({
     gallery_id: galleryId,
     title,
@@ -248,6 +257,7 @@ export async function createArtwork(galleryId: string, formData: FormData) {
     height_cm: heightCm,
     image_url: publicUrl,
     storage_path: path,
+    sort_order: sortOrder,
   });
   if (insertError) throw new Error(insertError.message);
 
@@ -263,6 +273,75 @@ export async function createArtwork(galleryId: string, formData: FormData) {
   revalidatePath(`/admin/galleries/${galleryId}`);
   revalidatePath(`/galleries/${galleryId}`);
   revalidatePath("/");
+}
+
+export async function bulkCreateArtworks(galleryId: string, formData: FormData) {
+  await requireAdmin();
+
+  const files = formData.getAll("images").filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length === 0) throw new Error("Choose at least one photo");
+
+  const admin = createAdminClient();
+  let sortOrder = await nextSortOrder(admin, galleryId);
+  let firstPublicUrl: string | null = null;
+
+  for (const file of files) {
+    const { path, publicUrl } = await uploadArtworkImage(file, galleryId);
+    const { error } = await admin.from("artworks").insert({
+      gallery_id: galleryId,
+      title: "Untitled",
+      image_url: publicUrl,
+      storage_path: path,
+      sort_order: sortOrder,
+    });
+    if (error) throw new Error(error.message);
+    firstPublicUrl ??= publicUrl;
+    sortOrder += 1;
+  }
+
+  const { data: gallery } = await admin
+    .from("galleries")
+    .select("cover_image_url")
+    .eq("id", galleryId)
+    .single();
+  if (gallery && !gallery.cover_image_url && firstPublicUrl) {
+    await admin.from("galleries").update({ cover_image_url: firstPublicUrl }).eq("id", galleryId);
+  }
+
+  revalidatePath(`/admin/galleries/${galleryId}`);
+  revalidatePath(`/galleries/${galleryId}`);
+  revalidatePath("/");
+}
+
+export async function moveArtwork(
+  artworkId: string,
+  galleryId: string,
+  direction: "up" | "down"
+) {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  const { data: artworks } = await admin
+    .from("artworks")
+    .select("id, sort_order")
+    .eq("gallery_id", galleryId)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (!artworks) return;
+
+  const index = artworks.findIndex((a) => a.id === artworkId);
+  const swapIndex = direction === "up" ? index - 1 : index + 1;
+  if (index === -1 || swapIndex < 0 || swapIndex >= artworks.length) return;
+
+  const current = artworks[index];
+  const swapWith = artworks[swapIndex];
+
+  await admin.from("artworks").update({ sort_order: swapWith.sort_order }).eq("id", current.id);
+  await admin.from("artworks").update({ sort_order: current.sort_order }).eq("id", swapWith.id);
+
+  revalidatePath(`/admin/galleries/${galleryId}`);
+  revalidatePath(`/galleries/${galleryId}`);
 }
 
 export async function updateArtwork(artworkId: string, galleryId: string, formData: FormData) {

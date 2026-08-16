@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { whatsappGeneralLink } from "@/lib/whatsapp";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import type { Artist } from "@/lib/types";
+
+export const metadata: Metadata = {
+  title: "Reach Us",
+  description: "Get in touch with Chitrashala's artists directly.",
+};
 
 export default async function ContactPage() {
   const supabase = await createClient();

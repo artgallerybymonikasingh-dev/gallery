@@ -1,4 +1,6 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import PhotoGrid from "@/components/PhotoGrid";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
@@ -7,22 +9,49 @@ import AppreciationBox from "@/components/AppreciationBox";
 import { submitGalleryAppreciation } from "../../actions";
 import type { Appreciation, ArtworkWithAppreciations, GalleryWithArtist } from "@/lib/types";
 
+const getGallery = cache(async (id: string) => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("galleries")
+    .select("*, artist:artists(*), appreciations(*)")
+    .eq("id", id)
+    .single<GalleryWithArtist & { appreciations: Appreciation[] }>();
+  return data;
+});
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const gallery = await getGallery(id);
+  if (!gallery) return {};
+
+  const title = gallery.title;
+  const description =
+    gallery.description ?? `A gallery of artwork by ${gallery.artist.name} on Chitrashala.`;
+  const images = gallery.cover_image_url ? [gallery.cover_image_url] : undefined;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, images },
+    twitter: { title, description, images },
+  };
+}
+
 export default async function GalleryPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
-
-  const { data: gallery } = await supabase
-    .from("galleries")
-    .select("*, artist:artists(*), appreciations(*)")
-    .eq("id", id)
-    .single<GalleryWithArtist & { appreciations: Appreciation[] }>();
+  const gallery = await getGallery(id);
 
   if (!gallery) notFound();
 
+  const supabase = await createClient();
   const { data: artworks } = await supabase
     .from("artworks")
     .select("*, appreciations(*)")

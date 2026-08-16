@@ -1,11 +1,46 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import GalleryCard from "@/components/GalleryCard";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import AppreciationBox from "@/components/AppreciationBox";
+import SearchGrid from "@/components/SearchGrid";
 import { submitArtistAppreciation } from "../../actions";
 import type { Appreciation, Artist, GalleryWithArtist } from "@/lib/types";
+
+const getArtist = cache(async (id: string) => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("artists")
+    .select("*, appreciations(*)")
+    .eq("id", id)
+    .single<Artist & { appreciations: Appreciation[] }>();
+  return data;
+});
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const artist = await getArtist(id);
+  if (!artist) return {};
+
+  const title = artist.name;
+  const description = artist.bio ?? `Artwork by ${artist.name} on Chitrashala.`;
+  const image = artist.cover_image_url ?? artist.avatar_url;
+  const images = image ? [image] : undefined;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, images },
+    twitter: { title, description, images },
+  };
+}
 
 export default async function ArtistPage({
   params,
@@ -13,16 +48,11 @@ export default async function ArtistPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
-
-  const { data: artist } = await supabase
-    .from("artists")
-    .select("*, appreciations(*)")
-    .eq("id", id)
-    .single<Artist & { appreciations: Appreciation[] }>();
+  const artist = await getArtist(id);
 
   if (!artist) notFound();
 
+  const supabase = await createClient();
   const { data: galleries } = await supabase
     .from("galleries")
     .select("*, artist:artists(*)")
@@ -56,15 +86,16 @@ export default async function ArtistPage({
         </div>
       </div>
 
-      {!galleries || galleries.length === 0 ? (
-        <p className="text-neutral-500">No galleries have been published yet.</p>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
-          {galleries.map((gallery) => (
-            <GalleryCard key={gallery.id} gallery={gallery} />
-          ))}
-        </div>
-      )}
+      <SearchGrid
+        entries={(galleries ?? []).map((gallery) => ({
+          key: gallery.id,
+          searchText: gallery.title,
+          node: <GalleryCard gallery={gallery} />,
+        }))}
+        placeholder="Search galleries…"
+        emptyText="No galleries have been published yet."
+        noResultsText="No galleries match your search."
+      />
 
       <AppreciationBox
         targetId={artist.id}

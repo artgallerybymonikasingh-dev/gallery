@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import ArtistCard from "@/components/ArtistCard";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
+import SearchGrid from "@/components/SearchGrid";
 import type { Artist } from "@/lib/types";
 
 type ArtistWithGalleries = Artist & { galleries: { cover_image_url: string | null }[] };
@@ -24,13 +25,12 @@ export default async function HomePage() {
         </p>
       </div>
 
-      {!artists || artists.length === 0 ? (
-        <p className="text-neutral-500">No artists have been added yet.</p>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
-          {artists.map((artist) => (
+      <SearchGrid
+        entries={(artists ?? []).map((artist) => ({
+          key: artist.id,
+          searchText: artist.name,
+          node: (
             <ArtistCard
-              key={artist.id}
               artist={artist}
               coverImageUrl={
                 artist.cover_image_url ??
@@ -39,9 +39,13 @@ export default async function HomePage() {
               }
               galleryCount={artist.galleries.length}
             />
-          ))}
-        </div>
-      )}
+          ),
+        }))}
+        placeholder="Search artists…"
+        emptyText="No artists have been added yet."
+        noResultsText="No artists match your search."
+      />
+
       <WhatsAppFloatingButton />
     </div>
   );
