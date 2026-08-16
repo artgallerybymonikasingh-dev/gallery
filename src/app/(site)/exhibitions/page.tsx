@@ -46,12 +46,13 @@ export default async function ExhibitionsPage() {
         <p className="text-neutral-500">No upcoming exhibitions have been announced yet.</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {exhibitions.map((ex) => {
+          {exhibitions.map((ex, index) => {
             const dateRange = formatDateRange(ex.start_date, ex.end_date);
             return (
               <div
                 key={ex.id}
-                className="rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm sm:p-5"
+                style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
+                className="animate-card-in rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm sm:p-5"
               >
                 <h2 className="font-serif text-lg font-medium text-royal-maroon">{ex.title}</h2>
                 {ex.artist && <p className="mt-0.5 text-sm text-neutral-500">by {ex.artist.name}</p>}

@@ -5,7 +5,7 @@ export default function GalleryCard({ gallery }: { gallery: GalleryWithArtist })
   return (
     <Link
       href={`/galleries/${gallery.id}`}
-      className="group block overflow-hidden rounded-lg border border-royal-gold/25 bg-white shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-royal-gold/70 hover:shadow-xl hover:shadow-royal-maroon/15 active:translate-y-0 active:scale-[0.98] active:shadow-md"
+      className="card-hover-float group block overflow-hidden rounded-lg border border-royal-gold/25 bg-white shadow-sm transition-all duration-300 ease-out hover:border-royal-gold/70 hover:shadow-xl hover:shadow-royal-maroon/15 active:scale-[0.98] active:shadow-md"
     >
       <div className="relative aspect-square w-full overflow-hidden bg-royal-cream-deep">
         {gallery.cover_image_url ? (

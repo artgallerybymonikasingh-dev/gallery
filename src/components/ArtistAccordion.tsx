@@ -22,10 +22,14 @@ export default function ArtistAccordion({ artists }: { artists: Artist[] }) {
 
   return (
     <div className="divide-y divide-royal-gold/25 overflow-hidden rounded-lg border border-royal-gold/25 bg-white">
-      {artists.map((artist) => {
+      {artists.map((artist, index) => {
         const isOpen = openIds.has(artist.id);
         return (
-          <div key={artist.id}>
+          <div
+            key={artist.id}
+            className="animate-card-in"
+            style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
+          >
             <button
               type="button"
               onClick={() => toggle(artist.id)}

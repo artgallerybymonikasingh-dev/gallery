@@ -32,26 +32,68 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Card entrance: fades/slides up on load, staggered per-card via the
-   inline animation-delay set where it's used. "both" fill-mode keeps the
-   card hidden before its delay elapses and settled afterwards. */
-@keyframes fade-in-up {
+/* Card entrance: slides in from the right and settles into place on every
+   mount (so it replays on every page load/navigation), staggered per-card
+   via the inline animation-delay set where it's used. The modest 28px
+   offset (rather than an off-screen slide) keeps this calm on a narrow
+   2-column mobile grid. "both" fill-mode keeps the card hidden before its
+   delay elapses and settled afterwards. */
+@keyframes card-in {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateX(28px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
-.animate-fade-in-up {
-  animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+.animate-card-in {
+  animation: card-in 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-in-up {
+  .animate-card-in {
+    animation: none;
+  }
+}
+
+/* Card idle float: a gentle up/down bob. Uses the standalone `translate`
+   property (not `transform`) specifically so it never fights with
+   Tailwind's transform-based hover/active/scale utilities (e.g.
+   active:scale-[0.98]), which still compile to `transform` under the
+   hood — `translate` and `transform` compose independently instead of
+   overriding each other.
+   - Mouse/trackpad devices: only floats while actively hovered.
+   - Touch devices (no hover to trigger it): floats continuously and
+     gently, so there's still something alive to look at without any
+     interaction. */
+@keyframes card-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -7px;
+  }
+}
+
+@media (hover: hover) {
+  .card-hover-float:hover {
+    animation: card-float 1.8s ease-in-out infinite;
+  }
+}
+
+@media (hover: none) {
+  .card-hover-float {
+    animation: card-float 2.8s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-hover-float,
+  .card-hover-float:hover {
     animation: none;
   }
 }

@@ -23,12 +23,13 @@ export default function PhotoGrid({
   return (
     <>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
-        {artworks.map((artwork) => (
+        {artworks.map((artwork, index) => (
           <button
             key={artwork.id}
             type="button"
             onClick={() => setSelectedId(artwork.id)}
-            className="group relative aspect-square overflow-hidden rounded-lg border border-royal-gold/20 bg-royal-cream-deep text-left shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-royal-gold/70 hover:shadow-lg hover:shadow-royal-maroon/15 active:translate-y-0 active:scale-[0.97]"
+            style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
+            className="card-hover-float group relative aspect-square animate-card-in overflow-hidden rounded-lg border border-royal-gold/20 bg-royal-cream-deep text-left shadow-sm transition-all duration-300 ease-out hover:border-royal-gold/70 hover:shadow-lg hover:shadow-royal-maroon/15 active:scale-[0.97]"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

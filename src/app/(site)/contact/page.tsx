@@ -33,10 +33,11 @@ export default async function ContactPage() {
         <p className="text-neutral-500">No contact details have been added yet.</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {artists.map((artist) => (
+          {artists.map((artist, index) => (
             <div
               key={artist.id}
-              className="rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm sm:p-5"
+              style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
+              className="animate-card-in rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm sm:p-5"
             >
               <h2 className="font-serif text-lg font-medium text-royal-maroon">{artist.name}</h2>
               <div className="mt-3 space-y-2 text-sm">

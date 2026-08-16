@@ -58,7 +58,7 @@ export default function SearchGrid({
           {filtered.map((entry, index) => (
             <div
               key={entry.key}
-              className="animate-fade-in-up"
+              className="animate-card-in"
               style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
             >
               {entry.node}
