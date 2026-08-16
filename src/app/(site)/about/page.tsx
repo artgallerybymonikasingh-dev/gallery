@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import ArtistTabs from "@/components/ArtistTabs";
+import ArtistAccordion from "@/components/ArtistAccordion";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import type { Artist } from "@/lib/types";
 
@@ -29,7 +29,7 @@ export default async function AboutPage() {
         </p>
       </div>
 
-      <ArtistTabs artists={artists ?? []} />
+      <ArtistAccordion artists={artists ?? []} />
     </div>
   );
 }
