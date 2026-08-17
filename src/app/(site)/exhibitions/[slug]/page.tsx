@@ -27,18 +27,40 @@ const getExhibition = cache(async (slug: string) => {
   return { ...rest, artists: exhibition_artists.map((link) => link.artist) } satisfies ExhibitionWithArtists;
 });
 
+// A photo counts as part of an exhibition either by being individually
+// tagged (artwork_exhibitions) or by belonging to a gallery that's
+// standing-linked to the exhibition (gallery_exhibitions) — union the two,
+// deduped by artwork id since a photo can qualify both ways at once.
 const getExhibitionArtworks = cache(async (exhibitionId: string) => {
   const supabase = await createClient();
-  const { data: links } = await supabase
-    .from("artwork_exhibitions")
-    .select("artwork:artworks(*, appreciations(*))")
-    .eq("exhibition_id", exhibitionId)
-    .returns<{ artwork: ArtworkWithAppreciations }[]>();
+  const [{ data: taggedLinks }, { data: galleryLinks }] = await Promise.all([
+    supabase
+      .from("artwork_exhibitions")
+      .select("artwork:artworks(*, appreciations(*))")
+      .eq("exhibition_id", exhibitionId)
+      .returns<{ artwork: ArtworkWithAppreciations }[]>(),
+    supabase.from("gallery_exhibitions").select("gallery_id").eq("exhibition_id", exhibitionId),
+  ]);
 
-  return (links ?? [])
+  const galleryIds = (galleryLinks ?? []).map((l) => l.gallery_id);
+  let galleryArtworks: ArtworkWithAppreciations[] = [];
+  if (galleryIds.length > 0) {
+    const { data } = await supabase
+      .from("artworks")
+      .select("*, appreciations(*)")
+      .in("gallery_id", galleryIds)
+      .returns<ArtworkWithAppreciations[]>();
+    galleryArtworks = data ?? [];
+  }
+
+  const taggedArtworks = (taggedLinks ?? [])
     .map((l) => l.artwork)
-    .filter((a): a is ArtworkWithAppreciations => a !== null)
-    .sort((a, b) => a.sort_order - b.sort_order);
+    .filter((a): a is ArtworkWithAppreciations => a !== null);
+
+  const byId = new Map<string, ArtworkWithAppreciations>();
+  for (const artwork of [...taggedArtworks, ...galleryArtworks]) byId.set(artwork.id, artwork);
+
+  return [...byId.values()].sort((a, b) => a.sort_order - b.sort_order);
 });
 
 function formatDateRange(start: string | null, end: string | null): string | null {

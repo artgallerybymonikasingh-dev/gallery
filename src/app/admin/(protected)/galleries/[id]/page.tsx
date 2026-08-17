@@ -3,7 +3,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Artwork, Exhibition, GalleryWithArtist } from "@/lib/types";
 import {
-  addGalleryToExhibitions,
   bulkCreateArtworks,
   createArtwork,
   deleteArtwork,
@@ -13,6 +12,7 @@ import {
   setGalleryCover,
   updateArtwork,
   updateGallery,
+  updateGalleryExhibitions,
 } from "../../actions";
 import ConfirmSubmitButton from "@/components/admin/ConfirmSubmitButton";
 import ArtworkForm from "@/components/admin/ArtworkForm";
@@ -58,6 +58,12 @@ export default async function ManageGalleryPage({
     list.push(link.exhibition_id);
     exhibitionIdsByArtwork.set(link.artwork_id, list);
   }
+
+  const { data: galleryExhibitionLinks } = await supabase
+    .from("gallery_exhibitions")
+    .select("exhibition_id")
+    .eq("gallery_id", id);
+  const galleryExhibitionIds = (galleryExhibitionLinks ?? []).map((link) => link.exhibition_id);
 
   return (
     <div className="space-y-10">
@@ -160,19 +166,24 @@ export default async function ManageGalleryPage({
 
       {(exhibitions ?? []).length > 0 && (
         <section>
-          <h2 className="text-sm font-medium text-neutral-700">Add this gallery to exhibitions</h2>
+          <h2 className="text-sm font-medium text-neutral-700">This gallery's exhibitions</h2>
           <p className="mt-1 text-xs text-neutral-500">
-            Tags every photo currently in this gallery to the exhibitions you check below, in one
-            go. Photos added later still need tagging individually (or run this again).
+            A standing link — every photo in this gallery, including ones added later, counts as
+            part of the exhibitions checked below. Leave all unchecked for none.
           </p>
           <form
-            action={addGalleryToExhibitions.bind(null, gallery.id)}
+            action={updateGalleryExhibitions.bind(null, gallery.id)}
             className="mt-2 max-w-md space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
           >
             <div className="max-h-32 space-y-1 overflow-y-auto rounded-md border border-neutral-300 p-2">
               {(exhibitions ?? []).map((ex) => (
                 <label key={ex.id} className="flex items-center gap-2 text-sm text-neutral-700">
-                  <input type="checkbox" name="exhibition_ids" value={ex.id} />
+                  <input
+                    type="checkbox"
+                    name="exhibition_ids"
+                    value={ex.id}
+                    defaultChecked={galleryExhibitionIds.includes(ex.id)}
+                  />
                   {ex.title}
                 </label>
               ))}
@@ -181,7 +192,7 @@ export default async function ManageGalleryPage({
               type="submit"
               className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
             >
-              Add gallery to selected exhibitions
+              Save
             </button>
           </form>
         </section>

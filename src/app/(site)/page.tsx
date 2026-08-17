@@ -17,7 +17,8 @@ type ArtistWithGalleries = Artist & {
 
 type RawExhibition = Omit<ExhibitionWithArtists, "artists"> & {
   exhibition_artists: { artist: Artist }[];
-  artwork_exhibitions: { artwork: { image_url: string } | null }[];
+  artwork_exhibitions: { artwork: { id: string; image_url: string } | null }[];
+  gallery_exhibitions: { gallery: { artworks: { id: string; image_url: string }[] } | null }[];
 };
 
 export default async function HomePage({
@@ -34,7 +35,9 @@ export default async function HomePage({
     supabase.from("artists").select("*, galleries(cover_image_url), appreciations(count)").order("name").returns<ArtistWithGalleries[]>(),
     supabase
       .from("exhibitions")
-      .select("*, exhibition_artists(artist:artists(*)), artwork_exhibitions(artwork:artworks(image_url))")
+      .select(
+        "*, exhibition_artists(artist:artists(*)), artwork_exhibitions(artwork:artworks(id, image_url)), gallery_exhibitions(gallery:galleries(artworks(id, image_url)))"
+      )
       .order("start_date", { ascending: false, nullsFirst: false })
       .returns<RawExhibition[]>(),
   ]);
@@ -43,15 +46,24 @@ export default async function HomePage({
   // upcoming one only earns a spot here once it actually has photos to
   // show — otherwise it's just an empty promotional card. Purely upcoming
   // announcements with no photos yet live on the dedicated
-  // /exhibitions "Next Exhibition" page instead.
+  // /exhibitions "Next Exhibition" page instead. A photo counts either by
+  // being individually tagged or by belonging to a standing-linked
+  // gallery — dedupe by id since it can qualify both ways.
   const exhibitions: ExhibitionWithArtworks[] = (rawExhibitions ?? [])
     .map((ex) => {
-      const { exhibition_artists, artwork_exhibitions, ...rest } = ex;
+      const { exhibition_artists, artwork_exhibitions, gallery_exhibitions, ...rest } = ex;
+      const taggedImages = artwork_exhibitions
+        .map((link) => link.artwork)
+        .filter((a): a is { id: string; image_url: string } => a !== null);
+      const galleryImages = gallery_exhibitions.flatMap((link) => link.gallery?.artworks ?? []);
+      const byId = new Map<string, string>();
+      for (const a of [...taggedImages, ...galleryImages]) byId.set(a.id, a.image_url);
+
       return {
         ...rest,
         artists: exhibition_artists.map((link) => link.artist),
-        photoCount: artwork_exhibitions.length,
-        coverImageUrl: artwork_exhibitions.find((link) => link.artwork)?.artwork?.image_url ?? null,
+        photoCount: byId.size,
+        coverImageUrl: [...byId.values()][0] ?? null,
       };
     })
     .filter((ex) => {

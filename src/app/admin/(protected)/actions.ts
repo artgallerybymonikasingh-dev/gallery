@@ -269,28 +269,23 @@ async function syncArtworkExhibitions(
   }
 }
 
-// Tags every photo currently in the gallery to one or more exhibitions in a
-// single action, instead of checking a box on each photo individually.
-// Photos added to the gallery later still need tagging themselves (or run
-// this again) — this is a one-time bulk apply, not a standing link.
-export async function addGalleryToExhibitions(galleryId: string, formData: FormData) {
+// Standing link between a gallery and zero, one, or more exhibitions —
+// every photo in a linked gallery (including ones added later) counts as
+// part of the exhibition, on top of any individually-tagged photos from
+// syncArtworkExhibitions above. Sync pattern: replace the full set each
+// save, same as syncArtworkExhibitions / syncExhibitionArtists.
+export async function updateGalleryExhibitions(galleryId: string, formData: FormData) {
   await requireAdmin();
   const exhibitionIds = formData
     .getAll("exhibition_ids")
     .filter((v): v is string => typeof v === "string" && v.length > 0);
-  if (exhibitionIds.length === 0) throw new Error("Choose at least one exhibition");
 
   const admin = createAdminClient();
-  const { data: artworks } = await admin.from("artworks").select("id").eq("gallery_id", galleryId);
-  const artworkIds = (artworks ?? []).map((a) => a.id);
-
-  if (artworkIds.length > 0) {
-    const rows = artworkIds.flatMap((artworkId) =>
-      exhibitionIds.map((exhibitionId) => ({ artwork_id: artworkId, exhibition_id: exhibitionId }))
-    );
+  await admin.from("gallery_exhibitions").delete().eq("gallery_id", galleryId);
+  if (exhibitionIds.length > 0) {
     const { error } = await admin
-      .from("artwork_exhibitions")
-      .upsert(rows, { onConflict: "artwork_id,exhibition_id", ignoreDuplicates: true });
+      .from("gallery_exhibitions")
+      .insert(exhibitionIds.map((exhibitionId) => ({ gallery_id: galleryId, exhibition_id: exhibitionId })));
     if (error) throw new Error(error.message);
   }
 

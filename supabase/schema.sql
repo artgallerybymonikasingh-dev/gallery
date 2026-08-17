@@ -73,6 +73,16 @@ create table if not exists artwork_exhibitions (
   primary key (artwork_id, exhibition_id)
 );
 
+-- Many-to-many: an entire gallery can be linked to zero, one, or more
+-- exhibitions as a standing association — every photo in a linked gallery
+-- (including ones added later) counts as part of the exhibition, on top
+-- of any individually-tagged photos in artwork_exhibitions above.
+create table if not exists gallery_exhibitions (
+  gallery_id uuid not null references galleries(id) on delete cascade,
+  exhibition_id uuid not null references exhibitions(id) on delete cascade,
+  primary key (gallery_id, exhibition_id)
+);
+
 -- Single-row settings table so the site-wide WhatsApp number can be
 -- changed from the admin panel instead of requiring a redeploy.
 create table if not exists site_settings (
@@ -113,6 +123,7 @@ create index if not exists appreciations_artist_id_idx on appreciations(artist_i
 create index if not exists artwork_exhibitions_exhibition_id_idx on artwork_exhibitions(exhibition_id);
 create index if not exists artwork_exhibitions_artwork_id_idx on artwork_exhibitions(artwork_id);
 create index if not exists exhibition_artists_artist_id_idx on exhibition_artists(artist_id);
+create index if not exists gallery_exhibitions_exhibition_id_idx on gallery_exhibitions(exhibition_id);
 
 -- Row Level Security: public visitors can only ever read. All writes go
 -- through Server Actions using the service-role key (see
@@ -126,6 +137,7 @@ alter table exhibitions enable row level security;
 alter table appreciations enable row level security;
 alter table artwork_exhibitions enable row level security;
 alter table exhibition_artists enable row level security;
+alter table gallery_exhibitions enable row level security;
 alter table site_settings enable row level security;
 
 create policy "Public read access" on artists for select using (true);
@@ -134,6 +146,7 @@ create policy "Public read access" on artworks for select using (true);
 create policy "Public read access" on exhibitions for select using (true);
 create policy "Public read access" on artwork_exhibitions for select using (true);
 create policy "Public read access" on exhibition_artists for select using (true);
+create policy "Public read access" on gallery_exhibitions for select using (true);
 create policy "Public read access" on site_settings for select using (true);
 
 -- Appreciations are the one table the public can write to directly (with
