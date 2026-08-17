@@ -7,15 +7,15 @@ import { updateArtist } from "../../../actions";
 export default async function EditArtistPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
+  const { slug } = await params;
   const supabase = await createClient();
 
   const { data: artist } = await supabase
     .from("artists")
     .select("*")
-    .eq("id", id)
+    .eq("slug", slug)
     .single<Artist>();
 
   if (!artist) notFound();

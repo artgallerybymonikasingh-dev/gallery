@@ -35,7 +35,7 @@ export default async function AdminGalleriesPage() {
             <p className="font-medium">{gallery.title}</p>
             <p className="text-sm text-neutral-500">{gallery.artist.name}</p>
             <div className="mt-3 flex items-center gap-3 text-sm">
-              <Link href={`/admin/galleries/${gallery.id}`} className="text-blue-600 hover:underline">
+              <Link href={`/admin/galleries/${gallery.slug}`} className="text-blue-600 hover:underline">
                 Manage
               </Link>
               <form action={deleteGallery.bind(null, gallery.id)}>

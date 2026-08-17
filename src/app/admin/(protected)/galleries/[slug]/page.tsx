@@ -20,18 +20,19 @@ import ArtworkForm from "@/components/admin/ArtworkForm";
 export default async function ManageGalleryPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
+  const { slug } = await params;
   const supabase = await createClient();
 
   const { data: gallery } = await supabase
     .from("galleries")
     .select("*, artist:artists(*)")
-    .eq("id", id)
+    .eq("slug", slug)
     .single<GalleryWithArtist>();
 
   if (!gallery) notFound();
+  const id = gallery.id;
 
   const { data: artworks } = await supabase
     .from("artworks")
@@ -74,7 +75,7 @@ export default async function ManageGalleryPage({
         <h1 className="mt-2 text-xl font-semibold">{gallery.title}</h1>
         <p className="text-sm text-neutral-500">
           by{" "}
-          <Link href={`/admin/artists/${gallery.artist.id}/edit`} className="text-blue-600 hover:underline">
+          <Link href={`/admin/artists/${gallery.artist.slug}/edit`} className="text-blue-600 hover:underline">
             {gallery.artist.name}
           </Link>
         </p>

@@ -212,8 +212,10 @@ export async function updateGallery(galleryId: string, formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin");
-  revalidatePath(`/admin/galleries/${galleryId}`);
-  if (gallery?.slug) revalidatePath(`/galleries/${gallery.slug}`);
+  if (gallery?.slug) {
+    revalidatePath(`/admin/galleries/${gallery.slug}`);
+    revalidatePath(`/galleries/${gallery.slug}`);
+  }
   revalidatePath("/");
 }
 
@@ -289,9 +291,12 @@ export async function updateGalleryExhibitions(galleryId: string, formData: Form
     if (error) throw new Error(error.message);
   }
 
-  const { data: exhibitions } = await admin.from("exhibitions").select("slug").in("id", exhibitionIds);
+  const [{ data: exhibitions }, { data: gallery }] = await Promise.all([
+    admin.from("exhibitions").select("slug").in("id", exhibitionIds),
+    admin.from("galleries").select("slug").eq("id", galleryId).single(),
+  ]);
 
-  revalidatePath(`/admin/galleries/${galleryId}`);
+  if (gallery?.slug) revalidatePath(`/admin/galleries/${gallery.slug}`);
   revalidatePath("/exhibitions");
   revalidatePath("/");
   for (const exhibition of exhibitions ?? []) {
@@ -347,8 +352,10 @@ export async function createArtwork(galleryId: string, formData: FormData) {
     await admin.from("galleries").update({ cover_image_url: publicUrl }).eq("id", galleryId);
   }
 
-  revalidatePath(`/admin/galleries/${galleryId}`);
-  if (gallery?.slug) revalidatePath(`/galleries/${gallery.slug}`);
+  if (gallery?.slug) {
+    revalidatePath(`/admin/galleries/${gallery.slug}`);
+    revalidatePath(`/galleries/${gallery.slug}`);
+  }
   revalidatePath("/");
   revalidatePath("/exhibitions");
 }
@@ -386,8 +393,10 @@ export async function bulkCreateArtworks(galleryId: string, formData: FormData) 
     await admin.from("galleries").update({ cover_image_url: firstPublicUrl }).eq("id", galleryId);
   }
 
-  revalidatePath(`/admin/galleries/${galleryId}`);
-  if (gallery?.slug) revalidatePath(`/galleries/${gallery.slug}`);
+  if (gallery?.slug) {
+    revalidatePath(`/admin/galleries/${gallery.slug}`);
+    revalidatePath(`/galleries/${gallery.slug}`);
+  }
   revalidatePath("/");
 }
 
@@ -420,8 +429,10 @@ export async function moveArtwork(
 
   const { data: gallery } = await admin.from("galleries").select("slug").eq("id", galleryId).single();
 
-  revalidatePath(`/admin/galleries/${galleryId}`);
-  if (gallery?.slug) revalidatePath(`/galleries/${gallery.slug}`);
+  if (gallery?.slug) {
+    revalidatePath(`/admin/galleries/${gallery.slug}`);
+    revalidatePath(`/galleries/${gallery.slug}`);
+  }
 }
 
 export async function updateArtwork(artworkId: string, galleryId: string, formData: FormData) {
@@ -468,8 +479,10 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
 
   const { data: gallery } = await admin.from("galleries").select("slug").eq("id", galleryId).single();
 
-  revalidatePath(`/admin/galleries/${galleryId}`);
-  if (gallery?.slug) revalidatePath(`/galleries/${gallery.slug}`);
+  if (gallery?.slug) {
+    revalidatePath(`/admin/galleries/${gallery.slug}`);
+    revalidatePath(`/galleries/${gallery.slug}`);
+  }
   revalidatePath("/");
   revalidatePath("/exhibitions");
 }
@@ -578,8 +591,10 @@ export async function deleteArtwork(artworkId: string, galleryId: string) {
 
   const { data: gallery } = await admin.from("galleries").select("slug").eq("id", galleryId).single();
 
-  revalidatePath(`/admin/galleries/${galleryId}`);
-  if (gallery?.slug) revalidatePath(`/galleries/${gallery.slug}`);
+  if (gallery?.slug) {
+    revalidatePath(`/admin/galleries/${gallery.slug}`);
+    revalidatePath(`/galleries/${gallery.slug}`);
+  }
   revalidatePath("/");
 }
 
@@ -596,7 +611,7 @@ export async function setGalleryCover(galleryId: string, imageUrl: string) {
     .single<{ slug: string; artist: { slug: string } | null }>();
   if (error) throw new Error(error.message);
 
-  revalidatePath(`/admin/galleries/${galleryId}`);
+  revalidatePath(`/admin/galleries/${gallery.slug}`);
   revalidatePath(`/galleries/${gallery.slug}`);
   revalidatePath("/");
   if (gallery?.artist?.slug) revalidatePath(`/artists/${gallery.artist.slug}`);
@@ -605,15 +620,13 @@ export async function setGalleryCover(galleryId: string, imageUrl: string) {
 export async function setArtistCover(artistId: string, galleryId: string, imageUrl: string) {
   await requireAdmin();
   const admin = createAdminClient();
-  const { data: artist, error } = await admin
-    .from("artists")
-    .update({ cover_image_url: imageUrl })
-    .eq("id", artistId)
-    .select("slug")
-    .single();
+  const [{ data: artist, error }, { data: gallery }] = await Promise.all([
+    admin.from("artists").update({ cover_image_url: imageUrl }).eq("id", artistId).select("slug").single(),
+    admin.from("galleries").select("slug").eq("id", galleryId).single(),
+  ]);
   if (error) throw new Error(error.message);
 
-  revalidatePath(`/admin/galleries/${galleryId}`);
+  if (gallery?.slug) revalidatePath(`/admin/galleries/${gallery.slug}`);
   revalidatePath("/");
   if (artist?.slug) revalidatePath(`/artists/${artist.slug}`);
 }
@@ -621,15 +634,13 @@ export async function setArtistCover(artistId: string, galleryId: string, imageU
 export async function setArtistAvatar(artistId: string, galleryId: string, imageUrl: string) {
   await requireAdmin();
   const admin = createAdminClient();
-  const { data: artist, error } = await admin
-    .from("artists")
-    .update({ avatar_url: imageUrl })
-    .eq("id", artistId)
-    .select("slug")
-    .single();
+  const [{ data: artist, error }, { data: gallery }] = await Promise.all([
+    admin.from("artists").update({ avatar_url: imageUrl }).eq("id", artistId).select("slug").single(),
+    admin.from("galleries").select("slug").eq("id", galleryId).single(),
+  ]);
   if (error) throw new Error(error.message);
 
-  revalidatePath(`/admin/galleries/${galleryId}`);
+  if (gallery?.slug) revalidatePath(`/admin/galleries/${gallery.slug}`);
   revalidatePath("/admin");
   revalidatePath("/");
   revalidatePath("/about");

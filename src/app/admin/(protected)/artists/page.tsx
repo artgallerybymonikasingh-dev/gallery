@@ -34,7 +34,7 @@ export default async function AdminArtistsPage() {
               <Link href={`/artists/${artist.slug}`} target="_blank" className="text-neutral-500 hover:underline">
                 View
               </Link>
-              <Link href={`/admin/artists/${artist.id}/edit`} className="text-blue-600 hover:underline">
+              <Link href={`/admin/artists/${artist.slug}/edit`} className="text-blue-600 hover:underline">
                 Edit
               </Link>
               <form action={deleteArtist.bind(null, artist.id)}>
