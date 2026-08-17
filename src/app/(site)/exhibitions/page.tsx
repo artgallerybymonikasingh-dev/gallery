@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import ShareButton from "@/components/ShareButton";
+import { SITE_URL } from "@/lib/site";
 import type { ExhibitionWithArtist } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -34,13 +36,21 @@ export default async function ExhibitionsPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <Breadcrumbs items={[{ label: "Next Exhibition" }]} />
-      <div className="mb-6 sm:mb-8">
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
-          Next Exhibition
-        </h1>
-        <p className="mt-1 text-sm text-neutral-500 sm:text-base">
-          Upcoming and current shows across locations.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-3 sm:mb-8">
+        <div>
+          <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
+            Next Exhibition
+          </h1>
+          <p className="mt-1 text-sm text-neutral-500 sm:text-base">
+            Upcoming and current shows across locations.
+          </p>
+        </div>
+        <ShareButton
+          url={`${SITE_URL}/exhibitions`}
+          title="Exhibitions on Chitrashala"
+          text="Upcoming and current exhibitions on Chitrashala"
+          className="flex shrink-0 items-center gap-1.5 rounded-full border border-royal-gold/40 px-3 py-1.5 text-xs font-medium text-royal-maroon transition-colors hover:bg-royal-cream-deep"
+        />
       </div>
 
       {!exhibitions || exhibitions.length === 0 ? (

@@ -20,6 +20,20 @@ const getExhibition = cache(async (slug: string) => {
   return data;
 });
 
+const getExhibitionArtworks = cache(async (exhibitionId: string) => {
+  const supabase = await createClient();
+  const { data: links } = await supabase
+    .from("artwork_exhibitions")
+    .select("artwork:artworks(*, appreciations(*))")
+    .eq("exhibition_id", exhibitionId)
+    .returns<{ artwork: ArtworkWithAppreciations }[]>();
+
+  return (links ?? [])
+    .map((l) => l.artwork)
+    .filter((a): a is ArtworkWithAppreciations => a !== null)
+    .sort((a, b) => a.sort_order - b.sort_order);
+});
+
 function formatDateRange(start: string | null, end: string | null): string | null {
   const fmt = (d: string) =>
     new Date(d + "T00:00:00").toLocaleDateString("en-IN", {
@@ -47,12 +61,14 @@ export async function generateMetadata({
   const description =
     exhibition.description ??
     (exhibition.artist ? `An exhibition by ${exhibition.artist.name} on Chitrashala.` : "An exhibition on Chitrashala.");
+  const artworks = await getExhibitionArtworks(exhibition.id);
+  const images = artworks[0] ? [artworks[0].image_url] : undefined;
 
   return {
     title,
     description,
-    openGraph: { title, description },
-    twitter: { title, description },
+    openGraph: { title, description, images },
+    twitter: { title, description, images },
   };
 }
 
@@ -66,17 +82,7 @@ export default async function ExhibitionPage({
 
   if (!exhibition) notFound();
 
-  const supabase = await createClient();
-  const { data: links } = await supabase
-    .from("artwork_exhibitions")
-    .select("artwork:artworks(*, appreciations(*))")
-    .eq("exhibition_id", exhibition.id)
-    .returns<{ artwork: ArtworkWithAppreciations }[]>();
-
-  const artworks = (links ?? [])
-    .map((l) => l.artwork)
-    .filter((a): a is ArtworkWithAppreciations => a !== null)
-    .sort((a, b) => a.sort_order - b.sort_order);
+  const artworks = await getExhibitionArtworks(exhibition.id);
 
   const exhibitionUrl = `${SITE_URL}/exhibitions/${exhibition.slug}`;
   const dateRange = formatDateRange(exhibition.start_date, exhibition.end_date);

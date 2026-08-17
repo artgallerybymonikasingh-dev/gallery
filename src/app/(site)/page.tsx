@@ -17,7 +17,14 @@ type RawExhibition = ExhibitionWithArtist & {
   artwork_exhibitions: { artwork: { image_url: string } | null }[];
 };
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const { view } = await searchParams;
+  const initialTab = view === "exhibitions" ? "exhibitions" : "artists";
+
   const supabase = await createClient();
 
   const [{ data: artists }, { data: rawExhibitions }] = await Promise.all([
@@ -92,7 +99,7 @@ export default async function HomePage() {
         </p>
       </div>
 
-      <HomeTabs artistsContent={artistsGrid} exhibitionsContent={exhibitionsGrid} />
+      <HomeTabs artistsContent={artistsGrid} exhibitionsContent={exhibitionsGrid} initialTab={initialTab} />
 
       <WhatsAppFloatingButton />
     </div>

@@ -23,6 +23,17 @@ const getArtist = cache(async (slug: string) => {
   return data;
 });
 
+const getArtistGalleries = cache(async (artistId: string) => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("galleries")
+    .select("*, artist:artists(*), appreciations(count)")
+    .eq("artist_id", artistId)
+    .order("created_at", { ascending: false })
+    .returns<(GalleryWithArtist & { appreciations: { count: number }[] })[]>();
+  return data ?? [];
+});
+
 export async function generateMetadata({
   params,
 }: {
@@ -34,7 +45,9 @@ export async function generateMetadata({
 
   const title = artist.name;
   const description = artist.bio ?? `Artwork by ${artist.name} on Chitrashala.`;
-  const image = artist.cover_image_url ?? artist.avatar_url;
+  const galleries = await getArtistGalleries(artist.id);
+  const collectionImage = galleries.find((g) => g.cover_image_url)?.cover_image_url;
+  const image = artist.cover_image_url ?? artist.avatar_url ?? collectionImage;
   const images = image ? [image] : undefined;
 
   return {
@@ -55,13 +68,7 @@ export default async function ArtistPage({
 
   if (!artist) notFound();
 
-  const supabase = await createClient();
-  const { data: galleries } = await supabase
-    .from("galleries")
-    .select("*, artist:artists(*), appreciations(count)")
-    .eq("artist_id", artist.id)
-    .order("created_at", { ascending: false })
-    .returns<(GalleryWithArtist & { appreciations: { count: number }[] })[]>();
+  const galleries = await getArtistGalleries(artist.id);
 
   const artistUrl = `${SITE_URL}/artists/${artist.slug}`;
 
