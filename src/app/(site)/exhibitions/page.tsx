@@ -4,11 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ShareButton from "@/components/ShareButton";
 import { SITE_URL } from "@/lib/site";
+import { getExhibitionPhase } from "@/lib/exhibitionPhase";
 import type { Artist, ExhibitionWithArtists } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Next Exhibition",
-  description: "Upcoming and current shows by Chitrashala's artists.",
+  description: "Upcoming shows by Chitrashala's artists.",
 };
 
 function formatDateRange(start: string | null, end: string | null): string | null {
@@ -37,10 +38,12 @@ export default async function ExhibitionsPage() {
     .order("start_date", { ascending: true, nullsFirst: false })
     .returns<RawExhibition[]>();
 
-  const exhibitions: ExhibitionWithArtists[] = (rawExhibitions ?? []).map((ex) => ({
-    ...ex,
-    artists: ex.exhibition_artists.map((link) => link.artist),
-  }));
+  const exhibitions: ExhibitionWithArtists[] = (rawExhibitions ?? [])
+    .map((ex) => ({
+      ...ex,
+      artists: ex.exhibition_artists.map((link) => link.artist),
+    }))
+    .filter((ex) => getExhibitionPhase(ex.start_date, ex.end_date) === "upcoming");
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
@@ -51,13 +54,13 @@ export default async function ExhibitionsPage() {
             Next Exhibition
           </h1>
           <p className="mt-1 text-sm text-neutral-500 sm:text-base">
-            Upcoming and current shows across locations.
+            Upcoming shows across locations.
           </p>
         </div>
         <ShareButton
           url={`${SITE_URL}/exhibitions`}
-          title="Exhibitions on Chitrashala"
-          text="Upcoming and current exhibitions on Chitrashala"
+          title="Next Exhibition on Chitrashala"
+          text="Upcoming exhibitions on Chitrashala"
           className="flex shrink-0 items-center gap-1.5 rounded-full border border-royal-gold/40 px-3 py-1.5 text-xs font-medium text-royal-maroon transition-colors hover:bg-royal-cream-deep"
         />
       </div>

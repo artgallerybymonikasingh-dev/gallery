@@ -6,6 +6,7 @@ import SearchGrid from "@/components/SearchGrid";
 import HomeTabs from "@/components/HomeTabs";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
+import { getExhibitionPhase } from "@/lib/exhibitionPhase";
 import type { Artist, ExhibitionWithArtists, ExhibitionWithArtworks } from "@/lib/types";
 
 type ArtistWithGalleries = Artist & {
@@ -33,19 +34,29 @@ export default async function HomePage({
     supabase
       .from("exhibitions")
       .select("*, exhibition_artists(artist:artists(*)), artwork_exhibitions(artwork:artworks(image_url))")
-      .order("start_date", { ascending: true, nullsFirst: false })
+      .order("start_date", { ascending: false, nullsFirst: false })
       .returns<RawExhibition[]>(),
   ]);
 
-  const exhibitions: ExhibitionWithArtworks[] = (rawExhibitions ?? []).map((ex) => {
-    const { exhibition_artists, artwork_exhibitions, ...rest } = ex;
-    return {
-      ...rest,
-      artists: exhibition_artists.map((link) => link.artist),
-      photoCount: artwork_exhibitions.length,
-      coverImageUrl: artwork_exhibitions.find((link) => link.artwork)?.artwork?.image_url ?? null,
-    };
-  });
+  // Past shows are always worth keeping visible as a record; a live or
+  // upcoming one only earns a spot here once it actually has photos to
+  // show — otherwise it's just an empty promotional card. Purely upcoming
+  // announcements with no photos yet live on the dedicated
+  // /exhibitions "Next Exhibition" page instead.
+  const exhibitions: ExhibitionWithArtworks[] = (rawExhibitions ?? [])
+    .map((ex) => {
+      const { exhibition_artists, artwork_exhibitions, ...rest } = ex;
+      return {
+        ...rest,
+        artists: exhibition_artists.map((link) => link.artist),
+        photoCount: artwork_exhibitions.length,
+        coverImageUrl: artwork_exhibitions.find((link) => link.artwork)?.artwork?.image_url ?? null,
+      };
+    })
+    .filter((ex) => {
+      const phase = getExhibitionPhase(ex.start_date, ex.end_date);
+      return phase === "past" || phase === "undated" || ex.photoCount > 0;
+    });
 
   const artistsGrid = (
     <SearchGrid
