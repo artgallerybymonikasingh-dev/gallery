@@ -8,6 +8,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import ShareButton from "@/components/ShareButton";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
+import { getSiteWhatsappNumber } from "@/lib/siteSettings";
 import type { Artist, ArtworkWithAppreciations, ExhibitionWithArtists } from "@/lib/types";
 
 type RawExhibition = Omit<ExhibitionWithArtists, "artists"> & {
@@ -93,6 +94,7 @@ export default async function ExhibitionPage({
 
   const exhibitionUrl = `${SITE_URL}/exhibitions/${exhibition.slug}`;
   const dateRange = formatDateRange(exhibition.start_date, exhibition.end_date);
+  const siteDefaultWhatsapp = await getSiteWhatsappNumber();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
@@ -147,11 +149,12 @@ export default async function ExhibitionPage({
       <PhotoGrid
         artworks={artworks}
         artistName={exhibition.artists.map((a) => a.name).join(", ") || "the artists"}
+        siteDefaultWhatsapp={siteDefaultWhatsapp}
         shareUrl={exhibitionUrl}
         emptyText="No photos have been tagged to this exhibition yet."
       />
 
-      <WhatsAppFloatingButton />
+      <WhatsAppFloatingButton siteDefault={siteDefaultWhatsapp} />
     </div>
   );
 }

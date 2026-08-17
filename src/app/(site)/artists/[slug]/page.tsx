@@ -10,6 +10,7 @@ import SearchGrid from "@/components/SearchGrid";
 import ShareButton from "@/components/ShareButton";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
+import { getSiteWhatsappNumber } from "@/lib/siteSettings";
 import { submitArtistAppreciation } from "../../actions";
 import type { Appreciation, Artist, GalleryWithArtist } from "@/lib/types";
 
@@ -137,7 +138,7 @@ export default async function ArtistPage({
         emptyText="Be the first to share your thoughts on this artist."
       />
 
-      <WhatsAppFloatingButton phoneNumber={artist.whatsapp_number} />
+      <WhatsAppFloatingButton phoneNumber={artist.whatsapp_number} siteDefault={await getSiteWhatsappNumber()} />
     </div>
   );
 }

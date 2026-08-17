@@ -8,12 +8,14 @@ export default function PhotoGrid({
   artworks,
   artistName,
   whatsappNumber,
+  siteDefaultWhatsapp,
   shareUrl,
   emptyText = "No photos in this gallery yet.",
 }: {
   artworks: ArtworkWithAppreciations[];
   artistName: string;
   whatsappNumber?: string | null;
+  siteDefaultWhatsapp: string;
   shareUrl: string;
   emptyText?: string;
 }) {
@@ -77,6 +79,7 @@ export default function PhotoGrid({
           selectedIndex={selectedIndex}
           artistName={artistName}
           whatsappNumber={whatsappNumber}
+          siteDefaultWhatsapp={siteDefaultWhatsapp}
           shareUrl={shareUrl}
           onClose={() => setSelectedIndex(null)}
           onSelect={setSelectedIndex}

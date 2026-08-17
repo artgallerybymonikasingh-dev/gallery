@@ -668,3 +668,20 @@ export async function deleteAppreciation(appreciationId: string, publicPath: str
   revalidatePath("/admin/appreciations");
   revalidatePath(publicPath);
 }
+
+// ---------- Site settings ----------
+
+export async function updateSiteSettings(formData: FormData) {
+  await requireAdmin();
+  const whatsappNumber = readOptionalString(formData, "whatsapp_number");
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("site_settings")
+    .update({ whatsapp_number: whatsappNumber, updated_at: new Date().toISOString() })
+    .eq("id", "default");
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/", "layout");
+}

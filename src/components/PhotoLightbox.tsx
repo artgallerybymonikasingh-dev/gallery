@@ -15,6 +15,7 @@ export default function PhotoLightbox({
   selectedIndex,
   artistName,
   whatsappNumber,
+  siteDefaultWhatsapp,
   shareUrl,
   onClose,
   onSelect,
@@ -26,6 +27,7 @@ export default function PhotoLightbox({
   selectedIndex: number;
   artistName: string;
   whatsappNumber?: string | null;
+  siteDefaultWhatsapp: string;
   shareUrl: string;
   onClose: () => void;
   onSelect: (index: number) => void;
@@ -161,7 +163,12 @@ export default function PhotoLightbox({
           )}
 
           <a
-            href={whatsappEnquiryLink(artwork.title, artistName, artwork.whatsapp_number ?? whatsappNumber)}
+            href={whatsappEnquiryLink(
+              artwork.title,
+              artistName,
+              artwork.whatsapp_number ?? whatsappNumber,
+              siteDefaultWhatsapp
+            )}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition-transform hover:scale-105 active:scale-95"

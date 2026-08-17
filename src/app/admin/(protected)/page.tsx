@@ -172,6 +172,13 @@ export default async function AdminDashboardPage() {
       count: pendingCount ?? 0,
       countLabel: "pending",
     },
+    {
+      href: "/admin/settings",
+      icon: "⚙️",
+      title: "Settings",
+      description: "Site-wide WhatsApp number and other defaults.",
+      count: 0,
+    },
   ];
 
   return (

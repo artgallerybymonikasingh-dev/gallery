@@ -73,6 +73,18 @@ create table if not exists artwork_exhibitions (
   primary key (artwork_id, exhibition_id)
 );
 
+-- Single-row settings table so the site-wide WhatsApp number can be
+-- changed from the admin panel instead of requiring a redeploy.
+create table if not exists site_settings (
+  id text primary key default 'default',
+  whatsapp_number text,
+  updated_at timestamptz not null default now(),
+  constraint site_settings_single_row check (id = 'default')
+);
+
+insert into site_settings (id) values ('default')
+on conflict (id) do nothing;
+
 -- Exactly one of artwork_id / gallery_id / artist_id is set: an
 -- appreciation targets a specific painting, a gallery as a whole, or an
 -- artist as a whole.
@@ -114,6 +126,7 @@ alter table exhibitions enable row level security;
 alter table appreciations enable row level security;
 alter table artwork_exhibitions enable row level security;
 alter table exhibition_artists enable row level security;
+alter table site_settings enable row level security;
 
 create policy "Public read access" on artists for select using (true);
 create policy "Public read access" on galleries for select using (true);
@@ -121,6 +134,7 @@ create policy "Public read access" on artworks for select using (true);
 create policy "Public read access" on exhibitions for select using (true);
 create policy "Public read access" on artwork_exhibitions for select using (true);
 create policy "Public read access" on exhibition_artists for select using (true);
+create policy "Public read access" on site_settings for select using (true);
 
 -- Appreciations are the one table the public can write to directly (with
 -- the anon key, respecting RLS — everything else writes through the

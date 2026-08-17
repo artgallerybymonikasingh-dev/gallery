@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { whatsappGeneralLink } from "@/lib/whatsapp";
+import { getSiteWhatsappNumber } from "@/lib/siteSettings";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import type { Artist } from "@/lib/types";
 
@@ -16,6 +17,7 @@ export default async function ContactPage() {
     .select("*")
     .order("name")
     .returns<Artist[]>();
+  const siteDefaultWhatsapp = await getSiteWhatsappNumber();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
@@ -51,7 +53,7 @@ export default async function ContactPage() {
                 {artist.whatsapp_number && (
                   <p>
                     <a
-                      href={whatsappGeneralLink(artist.whatsapp_number)}
+                      href={whatsappGeneralLink(artist.whatsapp_number, siteDefaultWhatsapp)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-[#128C7E] hover:underline"

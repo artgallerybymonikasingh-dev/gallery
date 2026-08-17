@@ -2,12 +2,14 @@ import { whatsappGeneralLink } from "@/lib/whatsapp";
 
 export default function WhatsAppFloatingButton({
   phoneNumber,
+  siteDefault,
 }: {
   phoneNumber?: string | null;
+  siteDefault: string;
 }) {
   return (
     <a
-      href={whatsappGeneralLink(phoneNumber)}
+      href={whatsappGeneralLink(phoneNumber, siteDefault)}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"

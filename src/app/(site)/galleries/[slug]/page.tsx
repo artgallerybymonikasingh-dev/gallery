@@ -9,6 +9,7 @@ import AppreciationBox from "@/components/AppreciationBox";
 import ShareButton from "@/components/ShareButton";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
+import { getSiteWhatsappNumber } from "@/lib/siteSettings";
 import { submitGalleryAppreciation } from "../../actions";
 import type { Appreciation, ArtworkWithAppreciations, GalleryWithArtist } from "@/lib/types";
 
@@ -64,6 +65,7 @@ export default async function GalleryPage({
     .returns<ArtworkWithAppreciations[]>();
 
   const galleryUrl = `${SITE_URL}/galleries/${gallery.slug}`;
+  const siteDefaultWhatsapp = await getSiteWhatsappNumber();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
@@ -114,6 +116,7 @@ export default async function GalleryPage({
         artworks={artworks ?? []}
         artistName={gallery.artist.name}
         whatsappNumber={gallery.whatsapp_number}
+        siteDefaultWhatsapp={siteDefaultWhatsapp}
         shareUrl={galleryUrl}
       />
 
@@ -127,7 +130,7 @@ export default async function GalleryPage({
         emptyText="Be the first to share your thoughts on this gallery."
       />
 
-      <WhatsAppFloatingButton phoneNumber={gallery.whatsapp_number} />
+      <WhatsAppFloatingButton phoneNumber={gallery.whatsapp_number} siteDefault={siteDefaultWhatsapp} />
     </div>
   );
 }

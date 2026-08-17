@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/admin/galleries", label: "Galleries" },
   { href: "/admin/exhibitions", label: "Exhibitions" },
   { href: "/admin/appreciations", label: "Appreciations" },
+  { href: "/admin/settings", label: "Settings" },
 ];
 
 export default function AdminNavMenu() {

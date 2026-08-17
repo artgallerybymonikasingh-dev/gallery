@@ -7,6 +7,7 @@ import HomeTabs from "@/components/HomeTabs";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { getExhibitionPhase } from "@/lib/exhibitionPhase";
+import { getSiteWhatsappNumber } from "@/lib/siteSettings";
 import type { Artist, ExhibitionWithArtists, ExhibitionWithArtworks } from "@/lib/types";
 
 type ArtistWithGalleries = Artist & {
@@ -117,7 +118,7 @@ export default async function HomePage({
 
       <HomeTabs artistsContent={artistsGrid} exhibitionsContent={exhibitionsGrid} initialTab={initialTab} />
 
-      <WhatsAppFloatingButton />
+      <WhatsAppFloatingButton siteDefault={await getSiteWhatsappNumber()} />
     </div>
   );
 }
