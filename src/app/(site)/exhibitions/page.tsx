@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import type { ExhibitionWithArtist } from "@/lib/types";
@@ -49,10 +50,11 @@ export default async function ExhibitionsPage() {
           {exhibitions.map((ex, index) => {
             const dateRange = formatDateRange(ex.start_date, ex.end_date);
             return (
-              <div
+              <Link
                 key={ex.id}
+                href={`/exhibitions/${ex.slug}`}
                 style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
-                className="animate-card-in rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm sm:p-5"
+                className="card-hover-float animate-card-in block rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm transition-all duration-300 ease-out hover:border-royal-gold/70 hover:shadow-lg hover:shadow-royal-maroon/15 active:scale-[0.98] sm:p-5"
               >
                 <h2 className="font-serif text-lg font-medium text-royal-maroon">{ex.title}</h2>
                 {ex.artist && <p className="mt-0.5 text-sm text-neutral-500">by {ex.artist.name}</p>}
@@ -63,7 +65,7 @@ export default async function ExhibitionsPage() {
                 {ex.description && (
                   <p className="mt-3 whitespace-pre-line text-sm text-neutral-700">{ex.description}</p>
                 )}
-              </div>
+              </Link>
             );
           })}
         </div>

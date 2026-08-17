@@ -68,6 +68,7 @@ async function backfill(table, nameColumn) {
 async function main() {
   await backfill("artists", "name");
   await backfill("galleries", "title");
+  await backfill("exhibitions", "title");
   console.log("Done.");
 }
 

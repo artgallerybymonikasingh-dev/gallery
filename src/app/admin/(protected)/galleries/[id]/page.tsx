@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { Artwork, GalleryWithArtist } from "@/lib/types";
+import type { Artwork, Exhibition, GalleryWithArtist } from "@/lib/types";
 import {
   bulkCreateArtworks,
   createArtwork,
@@ -39,6 +39,24 @@ export default async function ManageGalleryPage({
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true })
     .returns<Artwork[]>();
+
+  const { data: exhibitions } = await supabase
+    .from("exhibitions")
+    .select("*")
+    .order("start_date", { ascending: true, nullsFirst: false })
+    .returns<Exhibition[]>();
+
+  const { data: artworkExhibitionLinks } = await supabase
+    .from("artwork_exhibitions")
+    .select("artwork_id, exhibition_id")
+    .in("artwork_id", (artworks ?? []).map((a) => a.id));
+
+  const exhibitionIdsByArtwork = new Map<string, string[]>();
+  for (const link of artworkExhibitionLinks ?? []) {
+    const list = exhibitionIdsByArtwork.get(link.artwork_id) ?? [];
+    list.push(link.exhibition_id);
+    exhibitionIdsByArtwork.set(link.artwork_id, list);
+  }
 
   return (
     <div className="space-y-10">
@@ -107,6 +125,7 @@ export default async function ManageGalleryPage({
             action={createArtwork.bind(null, gallery.id)}
             submitLabel="Upload photo"
             requireImage
+            exhibitions={exhibitions ?? []}
           />
         </div>
       </section>
@@ -240,6 +259,8 @@ export default async function ManageGalleryPage({
                     artwork={artwork}
                     submitLabel="Save"
                     requireImage={false}
+                    exhibitions={exhibitions ?? []}
+                    selectedExhibitionIds={exhibitionIdsByArtwork.get(artwork.id) ?? []}
                   />
                 </div>
                 <form action={deleteArtwork.bind(null, artwork.id, gallery.id)} className="px-3 pb-3">

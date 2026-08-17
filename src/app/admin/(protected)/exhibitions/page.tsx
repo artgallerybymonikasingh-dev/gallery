@@ -100,6 +100,15 @@ export default async function AdminExhibitionsPage() {
         <div className="mt-2 grid gap-4 sm:grid-cols-2">
           {(exhibitions ?? []).map((ex) => (
             <div key={ex.id} className="rounded-lg border border-neutral-200 bg-white p-4">
+              {ex.slug && (
+                <Link
+                  href={`/exhibitions/${ex.slug}`}
+                  target="_blank"
+                  className="mb-2 inline-block text-xs text-neutral-500 hover:underline"
+                >
+                  View public page →
+                </Link>
+              )}
               <form action={updateExhibition.bind(null, ex.id)} className="space-y-2">
                 <input
                   name="title"

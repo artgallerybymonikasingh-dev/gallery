@@ -8,19 +8,21 @@ export default function PhotoGrid({
   artworks,
   artistName,
   whatsappNumber,
-  gallerySlug,
+  shareUrl,
+  emptyText = "No photos in this gallery yet.",
 }: {
   artworks: ArtworkWithAppreciations[];
   artistName: string;
   whatsappNumber?: string | null;
-  gallerySlug: string;
+  shareUrl: string;
+  emptyText?: string;
 }) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const selected = selectedIndex !== null ? artworks[selectedIndex] : null;
   const hasMultiple = artworks.length > 1;
 
   if (artworks.length === 0) {
-    return <p className="text-neutral-500">No photos in this gallery yet.</p>;
+    return <p className="text-neutral-500">{emptyText}</p>;
   }
 
   return (
@@ -73,7 +75,7 @@ export default function PhotoGrid({
           selectedIndex={selectedIndex}
           artistName={artistName}
           whatsappNumber={whatsappNumber}
-          gallerySlug={gallerySlug}
+          shareUrl={shareUrl}
           onClose={() => setSelectedIndex(null)}
           onSelect={setSelectedIndex}
           onPrev={

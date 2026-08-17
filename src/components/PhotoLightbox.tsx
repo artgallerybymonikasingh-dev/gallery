@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ArtworkWithAppreciations } from "@/lib/types";
 import { whatsappEnquiryLink } from "@/lib/whatsapp";
-import { SITE_URL } from "@/lib/site";
 import AppreciationSection from "./AppreciationSection";
 import ShareButton from "./ShareButton";
 
@@ -16,7 +15,7 @@ export default function PhotoLightbox({
   selectedIndex,
   artistName,
   whatsappNumber,
-  gallerySlug,
+  shareUrl,
   onClose,
   onSelect,
   onPrev,
@@ -27,7 +26,7 @@ export default function PhotoLightbox({
   selectedIndex: number;
   artistName: string;
   whatsappNumber?: string | null;
-  gallerySlug: string;
+  shareUrl: string;
   onClose: () => void;
   onSelect: (index: number) => void;
   onPrev?: () => void;
@@ -140,7 +139,7 @@ export default function PhotoLightbox({
               <p className="mt-0.5 text-sm text-neutral-300">by {artistName}</p>
             </div>
             <ShareButton
-              url={`${SITE_URL}/galleries/${gallerySlug}`}
+              url={shareUrl}
               title={artwork.title}
               text={`"${artwork.title}" by ${artistName} on Chitrashala`}
               className="flex shrink-0 items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition-colors hover:bg-white/20"

@@ -16,7 +16,7 @@ export function slugify(text: string): string {
 // Appends -2, -3, ... until it finds a slug not already used in `table`.
 export async function ensureUniqueSlug(
   admin: SupabaseClient,
-  table: "artists" | "galleries",
+  table: "artists" | "galleries" | "exhibitions",
   base: string
 ): Promise<string> {
   const baseSlug = slugify(base);

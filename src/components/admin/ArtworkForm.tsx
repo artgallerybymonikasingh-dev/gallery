@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import type { Artwork } from "@/lib/types";
+import type { Artwork, Exhibition } from "@/lib/types";
 import { suggestArtworkDescription } from "@/app/admin/(protected)/actions";
 
 export default function ArtworkForm({
@@ -9,11 +9,15 @@ export default function ArtworkForm({
   artwork,
   submitLabel,
   requireImage,
+  exhibitions,
+  selectedExhibitionIds,
 }: {
   action: (formData: FormData) => void | Promise<void>;
   artwork?: Artwork;
   submitLabel: string;
   requireImage: boolean;
+  exhibitions: Exhibition[];
+  selectedExhibitionIds?: string[];
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [description, setDescription] = useState(artwork?.description ?? "");
@@ -128,6 +132,25 @@ export default function ArtworkForm({
           />
         </label>
       </div>
+
+      {exhibitions.length > 0 && (
+        <div>
+          <p className="text-sm font-medium text-neutral-700">Exhibitions (optional)</p>
+          <div className="mt-1 space-y-1 rounded-md border border-neutral-300 p-2">
+            {exhibitions.map((ex) => (
+              <label key={ex.id} className="flex items-center gap-2 text-sm text-neutral-700">
+                <input
+                  type="checkbox"
+                  name="exhibition_ids"
+                  value={ex.id}
+                  defaultChecked={selectedExhibitionIds?.includes(ex.id) ?? false}
+                />
+                {ex.title}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       <button
         type="submit"

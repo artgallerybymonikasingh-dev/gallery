@@ -114,7 +114,7 @@ export default async function GalleryPage({
         artworks={artworks ?? []}
         artistName={gallery.artist.name}
         whatsappNumber={gallery.whatsapp_number}
-        gallerySlug={gallery.slug}
+        shareUrl={galleryUrl}
       />
 
       <AppreciationBox

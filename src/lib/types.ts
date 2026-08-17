@@ -40,6 +40,7 @@ export type Artwork = {
 
 export type Exhibition = {
   id: string;
+  slug: string;
   title: string;
   artist_id: string | null;
   location: string | null;
@@ -71,6 +72,11 @@ export type ArtworkWithContext = Artwork & {
 export type ArtworkWithAppreciations = Artwork & { appreciations: Appreciation[] };
 
 export type ExhibitionWithArtist = Exhibition & { artist: Artist | null };
+
+export type ExhibitionWithArtworks = ExhibitionWithArtist & {
+  photoCount: number;
+  coverImageUrl: string | null;
+};
 
 export type AppreciationWithArtwork = Appreciation & {
   artwork: Artwork & { gallery: Gallery & { artist: Artist } };

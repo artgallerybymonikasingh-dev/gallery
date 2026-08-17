@@ -252,6 +252,23 @@ async function nextSortOrder(admin: ReturnType<typeof createAdminClient>, galler
   return count ?? 0;
 }
 
+async function syncArtworkExhibitions(
+  admin: ReturnType<typeof createAdminClient>,
+  artworkId: string,
+  formData: FormData
+) {
+  const exhibitionIds = formData
+    .getAll("exhibition_ids")
+    .filter((v): v is string => typeof v === "string" && v.length > 0);
+
+  await admin.from("artwork_exhibitions").delete().eq("artwork_id", artworkId);
+  if (exhibitionIds.length > 0) {
+    await admin
+      .from("artwork_exhibitions")
+      .insert(exhibitionIds.map((exhibitionId) => ({ artwork_id: artworkId, exhibition_id: exhibitionId })));
+  }
+}
+
 export async function createArtwork(galleryId: string, formData: FormData) {
   await requireAdmin();
 
@@ -270,18 +287,24 @@ export async function createArtwork(galleryId: string, formData: FormData) {
 
   const admin = createAdminClient();
   const sortOrder = await nextSortOrder(admin, galleryId);
-  const { error: insertError } = await admin.from("artworks").insert({
-    gallery_id: galleryId,
-    title,
-    description,
-    width_cm: widthCm,
-    height_cm: heightCm,
-    image_url: publicUrl,
-    storage_path: path,
-    sort_order: sortOrder,
-    status,
-  });
+  const { data: inserted, error: insertError } = await admin
+    .from("artworks")
+    .insert({
+      gallery_id: galleryId,
+      title,
+      description,
+      width_cm: widthCm,
+      height_cm: heightCm,
+      image_url: publicUrl,
+      storage_path: path,
+      sort_order: sortOrder,
+      status,
+    })
+    .select("id")
+    .single();
   if (insertError) throw new Error(insertError.message);
+
+  await syncArtworkExhibitions(admin, inserted.id, formData);
 
   const { data: gallery } = await admin
     .from("galleries")
@@ -295,6 +318,7 @@ export async function createArtwork(galleryId: string, formData: FormData) {
   revalidatePath(`/admin/galleries/${galleryId}`);
   if (gallery?.slug) revalidatePath(`/galleries/${gallery.slug}`);
   revalidatePath("/");
+  revalidatePath("/exhibitions");
 }
 
 export async function bulkCreateArtworks(galleryId: string, formData: FormData) {
@@ -406,11 +430,14 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
   const { error } = await admin.from("artworks").update(updates).eq("id", artworkId);
   if (error) throw new Error(error.message);
 
+  await syncArtworkExhibitions(admin, artworkId, formData);
+
   const { data: gallery } = await admin.from("galleries").select("slug").eq("id", galleryId).single();
 
   revalidatePath(`/admin/galleries/${galleryId}`);
   if (gallery?.slug) revalidatePath(`/galleries/${gallery.slug}`);
   revalidatePath("/");
+  revalidatePath("/exhibitions");
 }
 
 // ---------- Exhibitions ----------
@@ -421,8 +448,10 @@ export async function createExhibition(formData: FormData) {
   if (!title) throw new Error("Exhibition title is required");
 
   const admin = createAdminClient();
+  const slug = await ensureUniqueSlug(admin, "exhibitions", title);
   const { error } = await admin.from("exhibitions").insert({
     title,
+    slug,
     artist_id: readOptionalString(formData, "artist_id"),
     location: readOptionalString(formData, "location"),
     description: readOptionalString(formData, "description"),
@@ -433,6 +462,7 @@ export async function createExhibition(formData: FormData) {
 
   revalidatePath("/admin/exhibitions");
   revalidatePath("/exhibitions");
+  revalidatePath("/");
 }
 
 export async function updateExhibition(exhibitionId: string, formData: FormData) {
@@ -441,7 +471,7 @@ export async function updateExhibition(exhibitionId: string, formData: FormData)
   if (!title) throw new Error("Exhibition title is required");
 
   const admin = createAdminClient();
-  const { error } = await admin
+  const { data: exhibition, error } = await admin
     .from("exhibitions")
     .update({
       title,
@@ -451,11 +481,15 @@ export async function updateExhibition(exhibitionId: string, formData: FormData)
       start_date: readOptionalString(formData, "start_date"),
       end_date: readOptionalString(formData, "end_date"),
     })
-    .eq("id", exhibitionId);
+    .eq("id", exhibitionId)
+    .select("slug")
+    .single();
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/exhibitions");
   revalidatePath("/exhibitions");
+  if (exhibition?.slug) revalidatePath(`/exhibitions/${exhibition.slug}`);
+  revalidatePath("/");
 }
 
 export async function deleteExhibition(exhibitionId: string) {

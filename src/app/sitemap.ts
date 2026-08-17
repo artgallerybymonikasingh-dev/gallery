@@ -5,9 +5,10 @@ import { SITE_URL } from "@/lib/site";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
 
-  const [{ data: artists }, { data: galleries }] = await Promise.all([
+  const [{ data: artists }, { data: galleries }, { data: exhibitions }] = await Promise.all([
     supabase.from("artists").select("slug"),
     supabase.from("galleries").select("slug"),
+    supabase.from("exhibitions").select("slug"),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -29,5 +30,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...artistRoutes, ...galleryRoutes];
+  const exhibitionRoutes: MetadataRoute.Sitemap = (exhibitions ?? [])
+    .filter((e) => e.slug)
+    .map((e) => ({
+      url: `${SITE_URL}/exhibitions/${e.slug}`,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
+
+  return [...staticRoutes, ...artistRoutes, ...galleryRoutes, ...exhibitionRoutes];
 }
