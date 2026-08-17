@@ -142,7 +142,7 @@ export default async function AdminAppreciationsPage() {
                 name={item.name}
                 message={item.message}
                 appreciationId={item.id}
-                publicPath={`/galleries/${item.artwork.gallery_id}`}
+                publicPath={`/galleries/${item.artwork.gallery.slug}`}
                 showApprove={showApprove}
               />
             );
@@ -169,7 +169,7 @@ export default async function AdminAppreciationsPage() {
                 name={item.name}
                 message={item.message}
                 appreciationId={item.id}
-                publicPath={`/galleries/${item.gallery.id}`}
+                publicPath={`/galleries/${item.gallery.slug}`}
                 showApprove={showApprove}
               />
             );
@@ -196,7 +196,7 @@ export default async function AdminAppreciationsPage() {
                 name={item.name}
                 message={item.message}
                 appreciationId={item.id}
-                publicPath={`/artists/${item.artist.id}`}
+                publicPath={`/artists/${item.artist.slug}`}
                 showApprove={showApprove}
               />
             );

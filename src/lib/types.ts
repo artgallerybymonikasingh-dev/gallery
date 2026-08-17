@@ -1,5 +1,6 @@
 export type Artist = {
   id: string;
+  slug: string;
   name: string;
   bio: string | null;
   avatar_url: string | null;
@@ -12,6 +13,7 @@ export type Artist = {
 
 export type Gallery = {
   id: string;
+  slug: string;
   artist_id: string;
   title: string;
   description: string | null;

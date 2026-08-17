@@ -13,8 +13,9 @@ export default function PhotoGrid({
   artistName: string;
   whatsappNumber?: string | null;
 }) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = artworks.find((a) => a.id === selectedId) ?? null;
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const selected = selectedIndex !== null ? artworks[selectedIndex] : null;
+  const hasMultiple = artworks.length > 1;
 
   if (artworks.length === 0) {
     return <p className="text-neutral-500">No photos in this gallery yet.</p>;
@@ -27,9 +28,9 @@ export default function PhotoGrid({
           <button
             key={artwork.id}
             type="button"
-            onClick={() => setSelectedId(artwork.id)}
+            onClick={() => setSelectedIndex(index)}
             style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
-            className="card-hover-float group relative aspect-square animate-card-in overflow-hidden rounded-lg border border-royal-gold/20 bg-royal-cream-deep text-left shadow-sm transition-all duration-300 ease-out hover:border-royal-gold/70 hover:shadow-lg hover:shadow-royal-maroon/15 active:scale-[0.97]"
+            className="card-hover-float group relative aspect-square animate-card-in animate-pulse overflow-hidden rounded-lg border border-royal-gold/20 bg-royal-cream-deep text-left shadow-sm transition-all duration-300 ease-out hover:border-royal-gold/70 hover:shadow-lg hover:shadow-royal-maroon/15 active:scale-[0.97]"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -54,12 +55,20 @@ export default function PhotoGrid({
         ))}
       </div>
 
-      {selected && (
+      {selected && selectedIndex !== null && (
         <PhotoLightbox
           artwork={selected}
           artistName={artistName}
           whatsappNumber={whatsappNumber}
-          onClose={() => setSelectedId(null)}
+          onClose={() => setSelectedIndex(null)}
+          onPrev={
+            hasMultiple
+              ? () => setSelectedIndex((selectedIndex - 1 + artworks.length) % artworks.length)
+              : undefined
+          }
+          onNext={
+            hasMultiple ? () => setSelectedIndex((selectedIndex + 1) % artworks.length) : undefined
+          }
         />
       )}
     </>

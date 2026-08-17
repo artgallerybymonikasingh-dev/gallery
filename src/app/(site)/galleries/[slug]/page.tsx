@@ -9,12 +9,12 @@ import AppreciationBox from "@/components/AppreciationBox";
 import { submitGalleryAppreciation } from "../../actions";
 import type { Appreciation, ArtworkWithAppreciations, GalleryWithArtist } from "@/lib/types";
 
-const getGallery = cache(async (id: string) => {
+const getGallery = cache(async (slug: string) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("galleries")
     .select("*, artist:artists(*), appreciations(*)")
-    .eq("id", id)
+    .eq("slug", slug)
     .single<GalleryWithArtist & { appreciations: Appreciation[] }>();
   return data;
 });
@@ -22,10 +22,10 @@ const getGallery = cache(async (id: string) => {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const gallery = await getGallery(id);
+  const { slug } = await params;
+  const gallery = await getGallery(slug);
   if (!gallery) return {};
 
   const title = gallery.title;
@@ -44,10 +44,10 @@ export async function generateMetadata({
 export default async function GalleryPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
-  const gallery = await getGallery(id);
+  const { slug } = await params;
+  const gallery = await getGallery(slug);
 
   if (!gallery) notFound();
 
@@ -55,7 +55,7 @@ export default async function GalleryPage({
   const { data: artworks } = await supabase
     .from("artworks")
     .select("*, appreciations(*)")
-    .eq("gallery_id", id)
+    .eq("gallery_id", gallery.id)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true })
     .returns<ArtworkWithAppreciations[]>();
@@ -64,7 +64,7 @@ export default async function GalleryPage({
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <Breadcrumbs
         items={[
-          { label: gallery.artist.name, href: `/artists/${gallery.artist.id}` },
+          { label: gallery.artist.name, href: `/artists/${gallery.artist.slug}` },
           { label: gallery.title },
         ]}
       />

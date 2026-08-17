@@ -79,6 +79,16 @@ export default async function AdminDashboardPage() {
           </Link>
         ))}
       </div>
+
+      <a
+        href="/api/admin/export"
+        className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-royal-teal hover:underline"
+      >
+        ⬇ Export all data as JSON
+      </a>
+      <p className="mt-1 text-xs text-neutral-500">
+        A free backup independent of Supabase, in case you ever need one.
+      </p>
     </div>
   );
 }

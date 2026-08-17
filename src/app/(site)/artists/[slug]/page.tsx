@@ -10,12 +10,12 @@ import SearchGrid from "@/components/SearchGrid";
 import { submitArtistAppreciation } from "../../actions";
 import type { Appreciation, Artist, GalleryWithArtist } from "@/lib/types";
 
-const getArtist = cache(async (id: string) => {
+const getArtist = cache(async (slug: string) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("artists")
     .select("*, appreciations(*)")
-    .eq("id", id)
+    .eq("slug", slug)
     .single<Artist & { appreciations: Appreciation[] }>();
   return data;
 });
@@ -23,10 +23,10 @@ const getArtist = cache(async (id: string) => {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const artist = await getArtist(id);
+  const { slug } = await params;
+  const artist = await getArtist(slug);
   if (!artist) return {};
 
   const title = artist.name;
@@ -45,20 +45,20 @@ export async function generateMetadata({
 export default async function ArtistPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
-  const artist = await getArtist(id);
+  const { slug } = await params;
+  const artist = await getArtist(slug);
 
   if (!artist) notFound();
 
   const supabase = await createClient();
   const { data: galleries } = await supabase
     .from("galleries")
-    .select("*, artist:artists(*)")
-    .eq("artist_id", id)
+    .select("*, artist:artists(*), appreciations(count)")
+    .eq("artist_id", artist.id)
     .order("created_at", { ascending: false })
-    .returns<GalleryWithArtist[]>();
+    .returns<(GalleryWithArtist & { appreciations: { count: number }[] })[]>();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
@@ -90,7 +90,7 @@ export default async function ArtistPage({
         entries={(galleries ?? []).map((gallery) => ({
           key: gallery.id,
           searchText: gallery.title,
-          node: <GalleryCard gallery={gallery} />,
+          node: <GalleryCard gallery={gallery} appreciationCount={gallery.appreciations[0]?.count ?? 0} />,
         }))}
         placeholder="Search galleries…"
         emptyText="No galleries have been published yet."

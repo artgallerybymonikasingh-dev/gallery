@@ -6,8 +6,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
 
   const [{ data: artists }, { data: galleries }] = await Promise.all([
-    supabase.from("artists").select("id"),
-    supabase.from("galleries").select("id"),
+    supabase.from("artists").select("slug"),
+    supabase.from("galleries").select("slug"),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -18,13 +18,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const artistRoutes: MetadataRoute.Sitemap = (artists ?? []).map((a) => ({
-    url: `${SITE_URL}/artists/${a.id}`,
+    url: `${SITE_URL}/artists/${a.slug}`,
     changeFrequency: "weekly",
     priority: 0.8,
   }));
 
   const galleryRoutes: MetadataRoute.Sitemap = (galleries ?? []).map((g) => ({
-    url: `${SITE_URL}/galleries/${g.id}`,
+    url: `${SITE_URL}/galleries/${g.slug}`,
     changeFrequency: "weekly",
     priority: 0.8,
   }));

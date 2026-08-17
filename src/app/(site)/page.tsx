@@ -4,13 +4,16 @@ import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import SearchGrid from "@/components/SearchGrid";
 import type { Artist } from "@/lib/types";
 
-type ArtistWithGalleries = Artist & { galleries: { cover_image_url: string | null }[] };
+type ArtistWithGalleries = Artist & {
+  galleries: { cover_image_url: string | null }[];
+  appreciations: { count: number }[];
+};
 
 export default async function HomePage() {
   const supabase = await createClient();
   const { data: artists } = await supabase
     .from("artists")
-    .select("*, galleries(cover_image_url)")
+    .select("*, galleries(cover_image_url), appreciations(count)")
     .order("name")
     .returns<ArtistWithGalleries[]>();
 
@@ -38,6 +41,7 @@ export default async function HomePage() {
                 null
               }
               galleryCount={artist.galleries.length}
+              appreciationCount={artist.appreciations[0]?.count ?? 0}
             />
           ),
         }))}

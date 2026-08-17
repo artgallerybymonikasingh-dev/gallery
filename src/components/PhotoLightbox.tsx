@@ -11,11 +11,15 @@ export default function PhotoLightbox({
   artistName,
   whatsappNumber,
   onClose,
+  onPrev,
+  onNext,
 }: {
   artwork: ArtworkWithAppreciations;
   artistName: string;
   whatsappNumber?: string | null;
   onClose: () => void;
+  onPrev?: () => void;
+  onNext?: () => void;
 }) {
   // Portal straight to <body> so this always paints above everything,
   // including the sticky header — its backdrop-blur promotes it to a
@@ -28,6 +32,8 @@ export default function PhotoLightbox({
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft" && onPrev) onPrev();
+      if (e.key === "ArrowRight" && onNext) onNext();
     };
     document.addEventListener("keydown", onKeyDown);
     document.body.style.overflow = "hidden";
@@ -35,7 +41,7 @@ export default function PhotoLightbox({
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = "";
     };
-  }, [onClose]);
+  }, [onClose, onPrev, onNext]);
 
   const hasDimensions = artwork.width_cm && artwork.height_cm;
 
@@ -58,6 +64,37 @@ export default function PhotoLightbox({
           <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
         </svg>
       </button>
+
+      {onPrev && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPrev();
+          }}
+          aria-label="Previous photo"
+          className="absolute left-1 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 sm:left-3"
+        >
+          <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
+      {onNext && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNext();
+          }}
+          aria-label="Next photo"
+          className="absolute right-1 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 sm:right-3"
+        >
+          <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
 
       <div className="flex flex-1 items-center justify-center overflow-hidden p-4 pb-0 sm:p-8 sm:pb-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -31,7 +31,7 @@ export default async function AdminArtistsPage() {
             <p className="font-medium">{artist.name}</p>
             {artist.bio && <p className="mt-1 line-clamp-2 text-sm text-neutral-500">{artist.bio}</p>}
             <div className="mt-3 flex items-center gap-3 text-sm">
-              <Link href={`/artists/${artist.id}`} target="_blank" className="text-neutral-500 hover:underline">
+              <Link href={`/artists/${artist.slug}`} target="_blank" className="text-neutral-500 hover:underline">
                 View
               </Link>
               <Link href={`/admin/artists/${artist.id}/edit`} className="text-blue-600 hover:underline">

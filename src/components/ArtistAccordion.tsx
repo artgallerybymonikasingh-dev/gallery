@@ -81,7 +81,7 @@ export default function ArtistAccordion({ artists }: { artists: Artist[] }) {
                     <p className="text-sm text-neutral-500">No profile description added yet.</p>
                   )}
                   <Link
-                    href={`/artists/${artist.id}`}
+                    href={`/artists/${artist.slug}`}
                     className="mt-3 inline-block text-sm font-medium text-royal-teal hover:underline"
                   >
                     View {artist.name}&apos;s galleries →

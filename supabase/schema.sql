@@ -2,8 +2,12 @@
 
 create extension if not exists "pgcrypto";
 
+-- `slug` powers pretty public URLs (/artists/monika-singh instead of a raw
+-- UUID). It's generated once at creation time and left stable afterwards
+-- even if the name/title later changes, so shared links never break.
 create table if not exists artists (
   id uuid primary key default gen_random_uuid(),
+  slug text unique,
   name text not null,
   bio text,
   avatar_url text,
@@ -16,6 +20,7 @@ create table if not exists artists (
 
 create table if not exists galleries (
   id uuid primary key default gen_random_uuid(),
+  slug text unique,
   artist_id uuid not null references artists(id) on delete cascade,
   title text not null,
   description text,
