@@ -41,6 +41,9 @@ create table if not exists artworks (
   sort_order integer not null default 0,
   status text not null default 'available'
     check (status in ('available', 'reserved', 'sold')),
+  -- Resolution order for the "Enquire" link: photo -> gallery -> site-wide
+  -- default (see whatsappEnquiryLink in src/lib/whatsapp.ts).
+  whatsapp_number text,
   created_at timestamptz not null default now()
 );
 

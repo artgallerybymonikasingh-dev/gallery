@@ -317,6 +317,7 @@ export async function createArtwork(galleryId: string, formData: FormData) {
   const widthCm = readOptionalNumber(formData, "width_cm");
   const heightCm = readOptionalNumber(formData, "height_cm");
   const status = readArtworkStatus(formData);
+  const whatsappNumber = readOptionalString(formData, "whatsapp_number");
 
   const { path, publicUrl } = await uploadArtworkImage(file, galleryId);
 
@@ -334,6 +335,7 @@ export async function createArtwork(galleryId: string, formData: FormData) {
       storage_path: path,
       sort_order: sortOrder,
       status,
+      whatsapp_number: whatsappNumber,
     })
     .select("id")
     .single();
@@ -435,6 +437,7 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
   const widthCm = readOptionalNumber(formData, "width_cm");
   const heightCm = readOptionalNumber(formData, "height_cm");
   const status = readArtworkStatus(formData);
+  const whatsappNumber = readOptionalString(formData, "whatsapp_number");
 
   const admin = createAdminClient();
   const updates: Record<string, unknown> = {
@@ -443,6 +446,7 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
     width_cm: widthCm,
     height_cm: heightCm,
     status,
+    whatsapp_number: whatsappNumber,
   };
 
   const file = formData.get("image");

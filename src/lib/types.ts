@@ -35,6 +35,7 @@ export type Artwork = {
   storage_path: string;
   sort_order: number;
   status: ArtworkStatus;
+  whatsapp_number: string | null;
   created_at: string;
 };
 

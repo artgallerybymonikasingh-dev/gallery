@@ -108,6 +108,19 @@ export default function ArtworkForm({
         </select>
       </label>
 
+      <label className="block text-sm font-medium text-neutral-700">
+        WhatsApp number override (optional)
+        <input
+          name="whatsapp_number"
+          defaultValue={artwork?.whatsapp_number ?? ""}
+          placeholder="Leave blank to use the gallery's (or site-wide) number"
+          className="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
+        />
+        <span className="mt-1 block text-xs text-neutral-500">
+          Digits only, country code first, e.g. 919876543210 for +91 98765 43210.
+        </span>
+      </label>
+
       <div className="flex gap-2">
         <label className="block flex-1 text-sm font-medium text-neutral-700">
           Width (cm, optional)

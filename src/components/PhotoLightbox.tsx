@@ -161,7 +161,7 @@ export default function PhotoLightbox({
           )}
 
           <a
-            href={whatsappEnquiryLink(artwork.title, artistName, whatsappNumber)}
+            href={whatsappEnquiryLink(artwork.title, artistName, artwork.whatsapp_number ?? whatsappNumber)}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition-transform hover:scale-105 active:scale-95"
