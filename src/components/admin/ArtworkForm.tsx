@@ -91,6 +91,19 @@ export default function ArtworkForm({
         {aiError && <p className="mt-1 text-xs text-red-600">{aiError}</p>}
       </div>
 
+      <label className="block text-sm font-medium text-neutral-700">
+        Status
+        <select
+          name="status"
+          defaultValue={artwork?.status ?? "available"}
+          className="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
+        >
+          <option value="available">Available</option>
+          <option value="reserved">Reserved</option>
+          <option value="sold">Sold</option>
+        </select>
+      </label>
+
       <div className="flex gap-2">
         <label className="block flex-1 text-sm font-medium text-neutral-700">
           Width (cm, optional)

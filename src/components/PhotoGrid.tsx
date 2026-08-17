@@ -8,10 +8,12 @@ export default function PhotoGrid({
   artworks,
   artistName,
   whatsappNumber,
+  gallerySlug,
 }: {
   artworks: ArtworkWithAppreciations[];
   artistName: string;
   whatsappNumber?: string | null;
+  gallerySlug: string;
 }) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const selected = selectedIndex !== null ? artworks[selectedIndex] : null;
@@ -51,6 +53,15 @@ export default function PhotoGrid({
                 <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
               </svg>
             </div>
+            {artwork.status !== "available" && (
+              <span
+                className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white ${
+                  artwork.status === "sold" ? "bg-royal-maroon/90" : "bg-royal-teal/90"
+                }`}
+              >
+                {artwork.status === "sold" ? "Sold" : "Reserved"}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -58,9 +69,13 @@ export default function PhotoGrid({
       {selected && selectedIndex !== null && (
         <PhotoLightbox
           artwork={selected}
+          artworks={artworks}
+          selectedIndex={selectedIndex}
           artistName={artistName}
           whatsappNumber={whatsappNumber}
+          gallerySlug={gallerySlug}
           onClose={() => setSelectedIndex(null)}
+          onSelect={setSelectedIndex}
           onPrev={
             hasMultiple
               ? () => setSelectedIndex((selectedIndex - 1 + artworks.length) % artworks.length)

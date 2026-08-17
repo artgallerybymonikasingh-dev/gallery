@@ -7,6 +7,9 @@ import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import AppreciationBox from "@/components/AppreciationBox";
 import SearchGrid from "@/components/SearchGrid";
+import ShareButton from "@/components/ShareButton";
+import JsonLd from "@/components/JsonLd";
+import { SITE_URL } from "@/lib/site";
 import { submitArtistAppreciation } from "../../actions";
 import type { Appreciation, Artist, GalleryWithArtist } from "@/lib/types";
 
@@ -60,30 +63,50 @@ export default async function ArtistPage({
     .order("created_at", { ascending: false })
     .returns<(GalleryWithArtist & { appreciations: { count: number }[] })[]>();
 
+  const artistUrl = `${SITE_URL}/artists/${artist.slug}`;
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: artist.name,
+          description: artist.bio ?? undefined,
+          image: artist.avatar_url ?? artist.cover_image_url ?? undefined,
+          url: artistUrl,
+        }}
+      />
       <Breadcrumbs items={[{ label: artist.name }]} />
-      <div className="mb-6 flex items-center gap-4 sm:mb-8">
-        {artist.avatar_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={artist.avatar_url}
-            alt={artist.name}
-            className="h-16 w-16 shrink-0 rounded-full object-cover sm:h-20 sm:w-20"
-          />
-        ) : (
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-royal-cream-deep text-xl font-semibold text-royal-maroon/60 sm:h-20 sm:w-20">
-            {artist.name.charAt(0)}
-          </div>
-        )}
-        <div>
-          <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
-            {artist.name}
-          </h1>
-          {artist.bio && (
-            <p className="mt-1 line-clamp-2 max-w-lg text-sm text-neutral-600">{artist.bio}</p>
+      <div className="mb-6 flex items-start justify-between gap-3 sm:mb-8">
+        <div className="flex items-center gap-4">
+          {artist.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={artist.avatar_url}
+              alt={artist.name}
+              className="h-16 w-16 shrink-0 rounded-full object-cover sm:h-20 sm:w-20"
+            />
+          ) : (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-royal-cream-deep text-xl font-semibold text-royal-maroon/60 sm:h-20 sm:w-20">
+              {artist.name.charAt(0)}
+            </div>
           )}
+          <div>
+            <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
+              {artist.name}
+            </h1>
+            {artist.bio && (
+              <p className="mt-1 line-clamp-2 max-w-lg text-sm text-neutral-600">{artist.bio}</p>
+            )}
+          </div>
         </div>
+        <ShareButton
+          url={artistUrl}
+          title={artist.name}
+          text={`${artist.name} on Chitrashala`}
+          className="flex shrink-0 items-center gap-1.5 rounded-full border border-royal-gold/40 px-3 py-1.5 text-xs font-medium text-royal-maroon transition-colors hover:bg-royal-cream-deep"
+        />
       </div>
 
       <SearchGrid

@@ -39,6 +39,8 @@ create table if not exists artworks (
   image_url text not null,
   storage_path text not null,
   sort_order integer not null default 0,
+  status text not null default 'available'
+    check (status in ('available', 'reserved', 'sold')),
   created_at timestamptz not null default now()
 );
 

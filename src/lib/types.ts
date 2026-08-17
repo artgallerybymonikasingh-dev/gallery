@@ -22,6 +22,8 @@ export type Gallery = {
   created_at: string;
 };
 
+export type ArtworkStatus = "available" | "reserved" | "sold";
+
 export type Artwork = {
   id: string;
   gallery_id: string;
@@ -32,6 +34,7 @@ export type Artwork = {
   image_url: string;
   storage_path: string;
   sort_order: number;
+  status: ArtworkStatus;
   created_at: string;
 };
 

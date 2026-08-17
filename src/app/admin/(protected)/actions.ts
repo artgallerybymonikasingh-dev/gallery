@@ -23,6 +23,11 @@ function readOptionalNumber(formData: FormData, key: string): number | null {
   return Number.isFinite(num) ? num : null;
 }
 
+function readArtworkStatus(formData: FormData): "available" | "reserved" | "sold" {
+  const value = formData.get("status");
+  return value === "reserved" || value === "sold" ? value : "available";
+}
+
 async function uploadImage(file: File, pathPrefix: string) {
   const arrayBuffer = await file.arrayBuffer();
   const webpBuffer = await toWebp(Buffer.from(arrayBuffer));
@@ -259,6 +264,7 @@ export async function createArtwork(galleryId: string, formData: FormData) {
   const description = readOptionalString(formData, "description");
   const widthCm = readOptionalNumber(formData, "width_cm");
   const heightCm = readOptionalNumber(formData, "height_cm");
+  const status = readArtworkStatus(formData);
 
   const { path, publicUrl } = await uploadArtworkImage(file, galleryId);
 
@@ -273,6 +279,7 @@ export async function createArtwork(galleryId: string, formData: FormData) {
     image_url: publicUrl,
     storage_path: path,
     sort_order: sortOrder,
+    status,
   });
   if (insertError) throw new Error(insertError.message);
 
@@ -368,6 +375,7 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
   const description = readOptionalString(formData, "description");
   const widthCm = readOptionalNumber(formData, "width_cm");
   const heightCm = readOptionalNumber(formData, "height_cm");
+  const status = readArtworkStatus(formData);
 
   const admin = createAdminClient();
   const updates: Record<string, unknown> = {
@@ -375,6 +383,7 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
     description,
     width_cm: widthCm,
     height_cm: heightCm,
+    status,
   };
 
   const file = formData.get("image");

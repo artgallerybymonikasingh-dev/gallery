@@ -4,20 +4,32 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ArtworkWithAppreciations } from "@/lib/types";
 import { whatsappEnquiryLink } from "@/lib/whatsapp";
+import { SITE_URL } from "@/lib/site";
 import AppreciationSection from "./AppreciationSection";
+import ShareButton from "./ShareButton";
+
+const STATUS_LABEL: Record<string, string> = { reserved: "Reserved", sold: "Sold" };
 
 export default function PhotoLightbox({
   artwork,
+  artworks,
+  selectedIndex,
   artistName,
   whatsappNumber,
+  gallerySlug,
   onClose,
+  onSelect,
   onPrev,
   onNext,
 }: {
   artwork: ArtworkWithAppreciations;
+  artworks: ArtworkWithAppreciations[];
+  selectedIndex: number;
   artistName: string;
   whatsappNumber?: string | null;
+  gallerySlug: string;
   onClose: () => void;
+  onSelect: (index: number) => void;
   onPrev?: () => void;
   onNext?: () => void;
 }) {
@@ -111,8 +123,29 @@ export default function PhotoLightbox({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto max-w-2xl">
-          <h2 className="text-lg font-medium sm:text-xl">{artwork.title}</h2>
-          <p className="mt-0.5 text-sm text-neutral-300">by {artistName}</p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-medium sm:text-xl">{artwork.title}</h2>
+                {artwork.status !== "available" && (
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white ${
+                      artwork.status === "sold" ? "bg-royal-maroon" : "bg-royal-teal"
+                    }`}
+                  >
+                    {STATUS_LABEL[artwork.status]}
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 text-sm text-neutral-300">by {artistName}</p>
+            </div>
+            <ShareButton
+              url={`${SITE_URL}/galleries/${gallerySlug}`}
+              title={artwork.title}
+              text={`"${artwork.title}" by ${artistName} on Chitrashala`}
+              className="flex shrink-0 items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition-colors hover:bg-white/20"
+            />
+          </div>
 
           {hasDimensions && (
             <p className="mt-2 text-sm text-neutral-300">
@@ -137,6 +170,34 @@ export default function PhotoLightbox({
             </svg>
             Enquire on WhatsApp
           </a>
+
+          {artworks.length > 1 && (
+            <div className="mt-5">
+              <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+                More from this gallery
+              </p>
+              <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+                {artworks.map((a, index) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelect(index);
+                    }}
+                    aria-label={a.title}
+                    aria-current={index === selectedIndex}
+                    className={`h-14 w-14 shrink-0 overflow-hidden rounded-md ring-2 transition-opacity sm:h-16 sm:w-16 ${
+                      index === selectedIndex ? "ring-white" : "opacity-60 ring-transparent hover:opacity-100"
+                    }`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={a.image_url} alt="" className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <AppreciationSection artworkId={artwork.id} appreciations={artwork.appreciations} />
         </div>

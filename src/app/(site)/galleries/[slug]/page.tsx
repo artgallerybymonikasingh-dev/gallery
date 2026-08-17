@@ -6,6 +6,9 @@ import PhotoGrid from "@/components/PhotoGrid";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import AppreciationBox from "@/components/AppreciationBox";
+import ShareButton from "@/components/ShareButton";
+import JsonLd from "@/components/JsonLd";
+import { SITE_URL } from "@/lib/site";
 import { submitGalleryAppreciation } from "../../actions";
 import type { Appreciation, ArtworkWithAppreciations, GalleryWithArtist } from "@/lib/types";
 
@@ -60,30 +63,58 @@ export default async function GalleryPage({
     .order("created_at", { ascending: true })
     .returns<ArtworkWithAppreciations[]>();
 
+  const galleryUrl = `${SITE_URL}/galleries/${gallery.slug}`;
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: gallery.title,
+          description: gallery.description ?? undefined,
+          url: galleryUrl,
+          about: { "@type": "Person", name: gallery.artist.name },
+          hasPart: (artworks ?? []).map((a) => ({
+            "@type": "VisualArtwork",
+            name: a.title,
+            image: a.image_url,
+            description: a.description ?? undefined,
+            creator: { "@type": "Person", name: gallery.artist.name },
+          })),
+        }}
+      />
       <Breadcrumbs
         items={[
           { label: gallery.artist.name, href: `/artists/${gallery.artist.slug}` },
           { label: gallery.title },
         ]}
       />
-      <div className="mb-6 sm:mb-8">
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
-          {gallery.title}
-        </h1>
-        <p className="mt-1 text-sm text-neutral-500 sm:text-base">by {gallery.artist.name}</p>
-        {gallery.description && (
-          <p className="mt-3 max-w-2xl whitespace-pre-line text-neutral-700">
-            {gallery.description}
-          </p>
-        )}
+      <div className="mb-6 flex items-start justify-between gap-3 sm:mb-8">
+        <div>
+          <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
+            {gallery.title}
+          </h1>
+          <p className="mt-1 text-sm text-neutral-500 sm:text-base">by {gallery.artist.name}</p>
+          {gallery.description && (
+            <p className="mt-3 max-w-2xl whitespace-pre-line text-neutral-700">
+              {gallery.description}
+            </p>
+          )}
+        </div>
+        <ShareButton
+          url={galleryUrl}
+          title={gallery.title}
+          text={`${gallery.title} by ${gallery.artist.name} on Chitrashala`}
+          className="flex shrink-0 items-center gap-1.5 rounded-full border border-royal-gold/40 px-3 py-1.5 text-xs font-medium text-royal-maroon transition-colors hover:bg-royal-cream-deep"
+        />
       </div>
 
       <PhotoGrid
         artworks={artworks ?? []}
         artistName={gallery.artist.name}
         whatsappNumber={gallery.whatsapp_number}
+        gallerySlug={gallery.slug}
       />
 
       <AppreciationBox
