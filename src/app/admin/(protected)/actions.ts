@@ -269,6 +269,41 @@ async function syncArtworkExhibitions(
   }
 }
 
+// Tags every photo currently in the gallery to one or more exhibitions in a
+// single action, instead of checking a box on each photo individually.
+// Photos added to the gallery later still need tagging themselves (or run
+// this again) — this is a one-time bulk apply, not a standing link.
+export async function addGalleryToExhibitions(galleryId: string, formData: FormData) {
+  await requireAdmin();
+  const exhibitionIds = formData
+    .getAll("exhibition_ids")
+    .filter((v): v is string => typeof v === "string" && v.length > 0);
+  if (exhibitionIds.length === 0) throw new Error("Choose at least one exhibition");
+
+  const admin = createAdminClient();
+  const { data: artworks } = await admin.from("artworks").select("id").eq("gallery_id", galleryId);
+  const artworkIds = (artworks ?? []).map((a) => a.id);
+
+  if (artworkIds.length > 0) {
+    const rows = artworkIds.flatMap((artworkId) =>
+      exhibitionIds.map((exhibitionId) => ({ artwork_id: artworkId, exhibition_id: exhibitionId }))
+    );
+    const { error } = await admin
+      .from("artwork_exhibitions")
+      .upsert(rows, { onConflict: "artwork_id,exhibition_id", ignoreDuplicates: true });
+    if (error) throw new Error(error.message);
+  }
+
+  const { data: exhibitions } = await admin.from("exhibitions").select("slug").in("id", exhibitionIds);
+
+  revalidatePath(`/admin/galleries/${galleryId}`);
+  revalidatePath("/exhibitions");
+  revalidatePath("/");
+  for (const exhibition of exhibitions ?? []) {
+    if (exhibition.slug) revalidatePath(`/exhibitions/${exhibition.slug}`);
+  }
+}
+
 export async function createArtwork(galleryId: string, formData: FormData) {
   await requireAdmin();
 

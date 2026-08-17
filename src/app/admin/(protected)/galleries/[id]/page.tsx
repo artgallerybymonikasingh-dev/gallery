@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Artwork, Exhibition, GalleryWithArtist } from "@/lib/types";
 import {
+  addGalleryToExhibitions,
   bulkCreateArtworks,
   createArtwork,
   deleteArtwork,
@@ -156,6 +157,35 @@ export default async function ManageGalleryPage({
           </button>
         </form>
       </section>
+
+      {(exhibitions ?? []).length > 0 && (
+        <section>
+          <h2 className="text-sm font-medium text-neutral-700">Add this gallery to exhibitions</h2>
+          <p className="mt-1 text-xs text-neutral-500">
+            Tags every photo currently in this gallery to the exhibitions you check below, in one
+            go. Photos added later still need tagging individually (or run this again).
+          </p>
+          <form
+            action={addGalleryToExhibitions.bind(null, gallery.id)}
+            className="mt-2 max-w-md space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
+          >
+            <div className="max-h-32 space-y-1 overflow-y-auto rounded-md border border-neutral-300 p-2">
+              {(exhibitions ?? []).map((ex) => (
+                <label key={ex.id} className="flex items-center gap-2 text-sm text-neutral-700">
+                  <input type="checkbox" name="exhibition_ids" value={ex.id} />
+                  {ex.title}
+                </label>
+              ))}
+            </div>
+            <button
+              type="submit"
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            >
+              Add gallery to selected exhibitions
+            </button>
+          </form>
+        </section>
+      )}
 
       <section>
         <h2 className="text-sm font-medium text-neutral-700">
