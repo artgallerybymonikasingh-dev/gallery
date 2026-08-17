@@ -48,12 +48,19 @@ create table if not exists exhibitions (
   id uuid primary key default gen_random_uuid(),
   slug text unique,
   title text not null,
-  artist_id uuid references artists(id) on delete set null,
   location text,
   description text,
   start_date date,
   end_date date,
   created_at timestamptz not null default now()
+);
+
+-- Many-to-many: an exhibition can feature more than one artist (a joint
+-- show), or none at all (a general/group show with no specific credit).
+create table if not exists exhibition_artists (
+  exhibition_id uuid not null references exhibitions(id) on delete cascade,
+  artist_id uuid not null references artists(id) on delete cascade,
+  primary key (exhibition_id, artist_id)
 );
 
 -- Many-to-many: a photo can be shown at more than one exhibition over time.
@@ -85,12 +92,12 @@ create table if not exists appreciations (
 
 create index if not exists galleries_artist_id_idx on galleries(artist_id);
 create index if not exists artworks_gallery_id_idx on artworks(gallery_id);
-create index if not exists exhibitions_artist_id_idx on exhibitions(artist_id);
 create index if not exists appreciations_artwork_id_idx on appreciations(artwork_id);
 create index if not exists appreciations_gallery_id_idx on appreciations(gallery_id);
 create index if not exists appreciations_artist_id_idx on appreciations(artist_id);
 create index if not exists artwork_exhibitions_exhibition_id_idx on artwork_exhibitions(exhibition_id);
 create index if not exists artwork_exhibitions_artwork_id_idx on artwork_exhibitions(artwork_id);
+create index if not exists exhibition_artists_artist_id_idx on exhibition_artists(artist_id);
 
 -- Row Level Security: public visitors can only ever read. All writes go
 -- through Server Actions using the service-role key (see
@@ -103,12 +110,14 @@ alter table artworks enable row level security;
 alter table exhibitions enable row level security;
 alter table appreciations enable row level security;
 alter table artwork_exhibitions enable row level security;
+alter table exhibition_artists enable row level security;
 
 create policy "Public read access" on artists for select using (true);
 create policy "Public read access" on galleries for select using (true);
 create policy "Public read access" on artworks for select using (true);
 create policy "Public read access" on exhibitions for select using (true);
 create policy "Public read access" on artwork_exhibitions for select using (true);
+create policy "Public read access" on exhibition_artists for select using (true);
 
 -- Appreciations are the one table the public can write to directly (with
 -- the anon key, respecting RLS — everything else writes through the

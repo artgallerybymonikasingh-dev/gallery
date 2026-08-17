@@ -6,14 +6,15 @@ import SearchGrid from "@/components/SearchGrid";
 import HomeTabs from "@/components/HomeTabs";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
-import type { Artist, ExhibitionWithArtist, ExhibitionWithArtworks } from "@/lib/types";
+import type { Artist, ExhibitionWithArtists, ExhibitionWithArtworks } from "@/lib/types";
 
 type ArtistWithGalleries = Artist & {
   galleries: { cover_image_url: string | null }[];
   appreciations: { count: number }[];
 };
 
-type RawExhibition = ExhibitionWithArtist & {
+type RawExhibition = Omit<ExhibitionWithArtists, "artists"> & {
+  exhibition_artists: { artist: Artist }[];
   artwork_exhibitions: { artwork: { image_url: string } | null }[];
 };
 
@@ -23,7 +24,7 @@ export default async function HomePage({
   searchParams: Promise<{ view?: string }>;
 }) {
   const { view } = await searchParams;
-  const initialTab = view === "exhibitions" ? "exhibitions" : "artists";
+  const initialTab = view === "artists" ? "artists" : "exhibitions";
 
   const supabase = await createClient();
 
@@ -31,16 +32,20 @@ export default async function HomePage({
     supabase.from("artists").select("*, galleries(cover_image_url), appreciations(count)").order("name").returns<ArtistWithGalleries[]>(),
     supabase
       .from("exhibitions")
-      .select("*, artist:artists(*), artwork_exhibitions(artwork:artworks(image_url))")
+      .select("*, exhibition_artists(artist:artists(*)), artwork_exhibitions(artwork:artworks(image_url))")
       .order("start_date", { ascending: true, nullsFirst: false })
       .returns<RawExhibition[]>(),
   ]);
 
-  const exhibitions: ExhibitionWithArtworks[] = (rawExhibitions ?? []).map((ex) => ({
-    ...ex,
-    photoCount: ex.artwork_exhibitions.length,
-    coverImageUrl: ex.artwork_exhibitions.find((link) => link.artwork)?.artwork?.image_url ?? null,
-  }));
+  const exhibitions: ExhibitionWithArtworks[] = (rawExhibitions ?? []).map((ex) => {
+    const { exhibition_artists, artwork_exhibitions, ...rest } = ex;
+    return {
+      ...rest,
+      artists: exhibition_artists.map((link) => link.artist),
+      photoCount: artwork_exhibitions.length,
+      coverImageUrl: artwork_exhibitions.find((link) => link.artwork)?.artwork?.image_url ?? null,
+    };
+  });
 
   const artistsGrid = (
     <SearchGrid

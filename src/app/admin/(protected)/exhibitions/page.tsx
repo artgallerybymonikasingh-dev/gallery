@@ -1,8 +1,36 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { Artist, ExhibitionWithArtist } from "@/lib/types";
+import type { Artist, Exhibition } from "@/lib/types";
 import { createExhibition, deleteExhibition, updateExhibition } from "../actions";
 import ConfirmSubmitButton from "@/components/admin/ConfirmSubmitButton";
+
+function ArtistCheckboxes({
+  artists,
+  selectedArtistIds,
+}: {
+  artists: Artist[];
+  selectedArtistIds: string[];
+}) {
+  if (artists.length === 0) return null;
+  return (
+    <div>
+      <p className="text-xs text-neutral-500">Artists (optional — leave all unchecked for a group show)</p>
+      <div className="mt-1 max-h-32 space-y-1 overflow-y-auto rounded-md border border-neutral-300 p-2">
+        {artists.map((artist) => (
+          <label key={artist.id} className="flex items-center gap-2 text-sm text-neutral-700">
+            <input
+              type="checkbox"
+              name="artist_ids"
+              value={artist.id}
+              defaultChecked={selectedArtistIds.includes(artist.id)}
+            />
+            {artist.name}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default async function AdminExhibitionsPage() {
   const supabase = await createClient();
@@ -15,9 +43,21 @@ export default async function AdminExhibitionsPage() {
 
   const { data: exhibitions } = await supabase
     .from("exhibitions")
-    .select("*, artist:artists(*)")
+    .select("*")
     .order("start_date", { ascending: true, nullsFirst: false })
-    .returns<ExhibitionWithArtist[]>();
+    .returns<Exhibition[]>();
+
+  const { data: links } = await supabase
+    .from("exhibition_artists")
+    .select("exhibition_id, artist_id")
+    .in("exhibition_id", (exhibitions ?? []).map((e) => e.id));
+
+  const artistIdsByExhibition = new Map<string, string[]>();
+  for (const link of links ?? []) {
+    const list = artistIdsByExhibition.get(link.exhibition_id) ?? [];
+    list.push(link.artist_id);
+    artistIdsByExhibition.set(link.exhibition_id, list);
+  }
 
   return (
     <div className="space-y-8">
@@ -44,17 +84,7 @@ export default async function AdminExhibitionsPage() {
             placeholder="Exhibition title"
             className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
           />
-          <select
-            name="artist_id"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          >
-            <option value="">No specific artist (group show)</option>
-            {(artists ?? []).map((artist) => (
-              <option key={artist.id} value={artist.id}>
-                {artist.name}
-              </option>
-            ))}
-          </select>
+          <ArtistCheckboxes artists={artists ?? []} selectedArtistIds={[]} />
           <input
             name="location"
             placeholder="Location (optional)"
@@ -117,18 +147,10 @@ export default async function AdminExhibitionsPage() {
                   placeholder="Title"
                   className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
                 />
-                <select
-                  name="artist_id"
-                  defaultValue={ex.artist_id ?? ""}
-                  className="w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
-                >
-                  <option value="">No specific artist (group show)</option>
-                  {(artists ?? []).map((artist) => (
-                    <option key={artist.id} value={artist.id}>
-                      {artist.name}
-                    </option>
-                  ))}
-                </select>
+                <ArtistCheckboxes
+                  artists={artists ?? []}
+                  selectedArtistIds={artistIdsByExhibition.get(ex.id) ?? []}
+                />
                 <input
                   name="location"
                   defaultValue={ex.location ?? ""}

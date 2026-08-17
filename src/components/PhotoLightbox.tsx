@@ -7,7 +7,7 @@ import { whatsappEnquiryLink } from "@/lib/whatsapp";
 import AppreciationSection from "./AppreciationSection";
 import ShareButton from "./ShareButton";
 
-const STATUS_LABEL: Record<string, string> = { reserved: "Reserved", sold: "Sold" };
+const STATUS_LABEL: Record<string, string> = { available: "Available", reserved: "Reserved", sold: "Sold" };
 
 export default function PhotoLightbox({
   artwork,
@@ -126,15 +126,17 @@ export default function PhotoLightbox({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-medium sm:text-xl">{artwork.title}</h2>
-                {artwork.status !== "available" && (
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white ${
-                      artwork.status === "sold" ? "bg-royal-maroon" : "bg-royal-teal"
-                    }`}
-                  >
-                    {STATUS_LABEL[artwork.status]}
-                  </span>
-                )}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                    artwork.status === "sold"
+                      ? "bg-royal-maroon text-white"
+                      : artwork.status === "reserved"
+                        ? "bg-royal-teal text-white"
+                        : "bg-white/15 text-neutral-200"
+                  }`}
+                >
+                  {STATUS_LABEL[artwork.status]}
+                </span>
               </div>
               <p className="mt-0.5 text-sm text-neutral-300">by {artistName}</p>
             </div>

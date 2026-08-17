@@ -49,7 +49,7 @@ export default function ExhibitionCard({ exhibition }: { exhibition: ExhibitionW
           {exhibition.title}
         </h2>
         <p className="flex items-center gap-1 truncate text-sm text-neutral-500">
-          {exhibition.artist ? exhibition.artist.name : "Group show"}
+          {exhibition.artists.length > 0 ? exhibition.artists.map((a) => a.name).join(", ") : "Group show"}
           <span className="inline-block -translate-x-1 text-royal-gold opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
             →
           </span>

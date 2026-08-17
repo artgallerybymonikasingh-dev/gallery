@@ -8,16 +8,22 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import ShareButton from "@/components/ShareButton";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
-import type { ArtworkWithAppreciations, ExhibitionWithArtist } from "@/lib/types";
+import type { Artist, ArtworkWithAppreciations, ExhibitionWithArtists } from "@/lib/types";
+
+type RawExhibition = Omit<ExhibitionWithArtists, "artists"> & {
+  exhibition_artists: { artist: Artist }[];
+};
 
 const getExhibition = cache(async (slug: string) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("exhibitions")
-    .select("*, artist:artists(*)")
+    .select("*, exhibition_artists(artist:artists(*))")
     .eq("slug", slug)
-    .single<ExhibitionWithArtist>();
-  return data;
+    .single<RawExhibition>();
+  if (!data) return null;
+  const { exhibition_artists, ...rest } = data;
+  return { ...rest, artists: exhibition_artists.map((link) => link.artist) } satisfies ExhibitionWithArtists;
 });
 
 const getExhibitionArtworks = cache(async (exhibitionId: string) => {
@@ -58,9 +64,10 @@ export async function generateMetadata({
   if (!exhibition) return {};
 
   const title = exhibition.title;
+  const artistNames = exhibition.artists.map((a) => a.name).join(", ");
   const description =
     exhibition.description ??
-    (exhibition.artist ? `An exhibition by ${exhibition.artist.name} on Chitrashala.` : "An exhibition on Chitrashala.");
+    (artistNames ? `An exhibition by ${artistNames} on Chitrashala.` : "An exhibition on Chitrashala.");
   const artworks = await getExhibitionArtworks(exhibition.id);
   const images = artworks[0] ? [artworks[0].image_url] : undefined;
 
@@ -98,6 +105,7 @@ export default async function ExhibitionPage({
           startDate: exhibition.start_date ?? undefined,
           endDate: exhibition.end_date ?? undefined,
           location: exhibition.location ? { "@type": "Place", name: exhibition.location } : undefined,
+          performer: exhibition.artists.map((a) => ({ "@type": "Person", name: a.name })),
           url: exhibitionUrl,
         }}
       />
@@ -113,8 +121,10 @@ export default async function ExhibitionPage({
           <h1 className="font-serif text-2xl font-semibold tracking-tight text-royal-maroon sm:text-3xl">
             {exhibition.title}
           </h1>
-          {exhibition.artist && (
-            <p className="mt-1 text-sm text-neutral-500 sm:text-base">by {exhibition.artist.name}</p>
+          {exhibition.artists.length > 0 && (
+            <p className="mt-1 text-sm text-neutral-500 sm:text-base">
+              by {exhibition.artists.map((a) => a.name).join(", ")}
+            </p>
           )}
           <div className="mt-2 space-y-0.5 text-sm text-neutral-600">
             {exhibition.location && <p>📍 {exhibition.location}</p>}
@@ -136,7 +146,7 @@ export default async function ExhibitionPage({
 
       <PhotoGrid
         artworks={artworks}
-        artistName={exhibition.artist?.name ?? "the artists"}
+        artistName={exhibition.artists.map((a) => a.name).join(", ") || "the artists"}
         shareUrl={exhibitionUrl}
         emptyText="No photos have been tagged to this exhibition yet."
       />

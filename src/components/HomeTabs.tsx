@@ -18,12 +18,12 @@ export default function HomeTabs({
   function selectTab(next: "artists" | "exhibitions") {
     setTab(next);
     const url = new URL(window.location.href);
-    if (next === "artists") url.searchParams.delete("view");
+    if (next === "exhibitions") url.searchParams.delete("view");
     else url.searchParams.set("view", next);
     window.history.replaceState(null, "", url.pathname + url.search);
   }
 
-  const shareUrl = tab === "exhibitions" ? `${SITE_URL}/?view=exhibitions` : SITE_URL;
+  const shareUrl = tab === "artists" ? `${SITE_URL}/?view=artists` : SITE_URL;
 
   return (
     <div>

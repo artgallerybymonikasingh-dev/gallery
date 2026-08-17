@@ -55,15 +55,17 @@ export default function PhotoGrid({
                 <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
               </svg>
             </div>
-            {artwork.status !== "available" && (
-              <span
-                className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white ${
-                  artwork.status === "sold" ? "bg-royal-maroon/90" : "bg-royal-teal/90"
-                }`}
-              >
-                {artwork.status === "sold" ? "Sold" : "Reserved"}
-              </span>
-            )}
+            <span
+              className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                artwork.status === "sold"
+                  ? "bg-royal-maroon/90 text-white"
+                  : artwork.status === "reserved"
+                    ? "bg-royal-teal/90 text-white"
+                    : "bg-white/80 text-neutral-600 backdrop-blur"
+              }`}
+            >
+              {artwork.status === "sold" ? "Sold" : artwork.status === "reserved" ? "Reserved" : "Available"}
+            </span>
           </button>
         ))}
       </div>

@@ -442,6 +442,23 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
 
 // ---------- Exhibitions ----------
 
+async function syncExhibitionArtists(
+  admin: ReturnType<typeof createAdminClient>,
+  exhibitionId: string,
+  formData: FormData
+) {
+  const artistIds = formData
+    .getAll("artist_ids")
+    .filter((v): v is string => typeof v === "string" && v.length > 0);
+
+  await admin.from("exhibition_artists").delete().eq("exhibition_id", exhibitionId);
+  if (artistIds.length > 0) {
+    await admin
+      .from("exhibition_artists")
+      .insert(artistIds.map((artistId) => ({ exhibition_id: exhibitionId, artist_id: artistId })));
+  }
+}
+
 export async function createExhibition(formData: FormData) {
   await requireAdmin();
   const title = readOptionalString(formData, "title");
@@ -449,16 +466,21 @@ export async function createExhibition(formData: FormData) {
 
   const admin = createAdminClient();
   const slug = await ensureUniqueSlug(admin, "exhibitions", title);
-  const { error } = await admin.from("exhibitions").insert({
-    title,
-    slug,
-    artist_id: readOptionalString(formData, "artist_id"),
-    location: readOptionalString(formData, "location"),
-    description: readOptionalString(formData, "description"),
-    start_date: readOptionalString(formData, "start_date"),
-    end_date: readOptionalString(formData, "end_date"),
-  });
+  const { data: inserted, error } = await admin
+    .from("exhibitions")
+    .insert({
+      title,
+      slug,
+      location: readOptionalString(formData, "location"),
+      description: readOptionalString(formData, "description"),
+      start_date: readOptionalString(formData, "start_date"),
+      end_date: readOptionalString(formData, "end_date"),
+    })
+    .select("id")
+    .single();
   if (error) throw new Error(error.message);
+
+  await syncExhibitionArtists(admin, inserted.id, formData);
 
   revalidatePath("/admin/exhibitions");
   revalidatePath("/exhibitions");
@@ -475,7 +497,6 @@ export async function updateExhibition(exhibitionId: string, formData: FormData)
     .from("exhibitions")
     .update({
       title,
-      artist_id: readOptionalString(formData, "artist_id"),
       location: readOptionalString(formData, "location"),
       description: readOptionalString(formData, "description"),
       start_date: readOptionalString(formData, "start_date"),
@@ -485,6 +506,8 @@ export async function updateExhibition(exhibitionId: string, formData: FormData)
     .select("slug")
     .single();
   if (error) throw new Error(error.message);
+
+  await syncExhibitionArtists(admin, exhibitionId, formData);
 
   revalidatePath("/admin/exhibitions");
   revalidatePath("/exhibitions");

@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ShareButton from "@/components/ShareButton";
 import { SITE_URL } from "@/lib/site";
-import type { ExhibitionWithArtist } from "@/lib/types";
+import type { Artist, ExhibitionWithArtists } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Next Exhibition",
@@ -25,13 +25,22 @@ function formatDateRange(start: string | null, end: string | null): string | nul
   return null;
 }
 
+type RawExhibition = Omit<ExhibitionWithArtists, "artists"> & {
+  exhibition_artists: { artist: Artist }[];
+};
+
 export default async function ExhibitionsPage() {
   const supabase = await createClient();
-  const { data: exhibitions } = await supabase
+  const { data: rawExhibitions } = await supabase
     .from("exhibitions")
-    .select("*, artist:artists(*)")
+    .select("*, exhibition_artists(artist:artists(*))")
     .order("start_date", { ascending: true, nullsFirst: false })
-    .returns<ExhibitionWithArtist[]>();
+    .returns<RawExhibition[]>();
+
+  const exhibitions: ExhibitionWithArtists[] = (rawExhibitions ?? []).map((ex) => ({
+    ...ex,
+    artists: ex.exhibition_artists.map((link) => link.artist),
+  }));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
@@ -67,7 +76,11 @@ export default async function ExhibitionsPage() {
                 className="card-hover-float animate-card-in block rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm transition-all duration-300 ease-out hover:border-royal-gold/70 hover:shadow-lg hover:shadow-royal-maroon/15 active:scale-[0.98] sm:p-5"
               >
                 <h2 className="font-serif text-lg font-medium text-royal-maroon">{ex.title}</h2>
-                {ex.artist && <p className="mt-0.5 text-sm text-neutral-500">by {ex.artist.name}</p>}
+                {ex.artists.length > 0 && (
+                  <p className="mt-0.5 text-sm text-neutral-500">
+                    by {ex.artists.map((a) => a.name).join(", ")}
+                  </p>
+                )}
                 <div className="mt-2 space-y-0.5 text-sm text-neutral-600">
                   {ex.location && <p>📍 {ex.location}</p>}
                   {dateRange && <p>🗓️ {dateRange}</p>}
