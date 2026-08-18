@@ -69,7 +69,11 @@ export type ArtworkWithContext = Artwork & {
   gallery: Gallery & { artist: Artist };
 };
 
-export type ArtworkWithAppreciations = Artwork & { appreciations: Appreciation[] };
+// An artwork's own artist credit(s) — independent of its gallery's or any
+// exhibition's artist list, since neither implies every photo in it is by
+// all of those artists. Defaults to the gallery's artist at creation time
+// but is editable per photo from there.
+export type ArtworkWithAppreciations = Artwork & { appreciations: Appreciation[]; artists: Artist[] };
 
 export type ExhibitionWithArtists = Exhibition & { artists: Artist[] };
 

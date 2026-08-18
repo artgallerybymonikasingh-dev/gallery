@@ -11,7 +11,11 @@ import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { getSiteWhatsappNumber } from "@/lib/siteSettings";
 import { submitGalleryAppreciation } from "../../actions";
-import type { Appreciation, ArtworkWithAppreciations, GalleryWithArtist } from "@/lib/types";
+import type { Appreciation, Artist, ArtworkWithAppreciations, GalleryWithArtist } from "@/lib/types";
+
+type RawArtwork = Omit<ArtworkWithAppreciations, "artists"> & {
+  artwork_artists: { artist: Artist }[];
+};
 
 const getGallery = cache(async (slug: string) => {
   const supabase = await createClient();
@@ -56,13 +60,18 @@ export default async function GalleryPage({
   if (!gallery) notFound();
 
   const supabase = await createClient();
-  const { data: artworks } = await supabase
+  const { data: rawArtworks } = await supabase
     .from("artworks")
-    .select("*, appreciations(*)")
+    .select("*, appreciations(*), artwork_artists(artist:artists(*))")
     .eq("gallery_id", gallery.id)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true })
-    .returns<ArtworkWithAppreciations[]>();
+    .returns<RawArtwork[]>();
+
+  const artworks: ArtworkWithAppreciations[] = (rawArtworks ?? []).map((a) => {
+    const { artwork_artists, ...rest } = a;
+    return { ...rest, artists: artwork_artists.map((link) => link.artist) };
+  });
 
   const galleryUrl = `${SITE_URL}/galleries/${gallery.slug}`;
   const siteDefaultWhatsapp = await getSiteWhatsappNumber();
@@ -77,12 +86,15 @@ export default async function GalleryPage({
           description: gallery.description ?? undefined,
           url: galleryUrl,
           about: { "@type": "Person", name: gallery.artist.name },
-          hasPart: (artworks ?? []).map((a) => ({
+          hasPart: artworks.map((a) => ({
             "@type": "VisualArtwork",
             name: a.title,
             image: a.image_url,
             description: a.description ?? undefined,
-            creator: { "@type": "Person", name: gallery.artist.name },
+            creator: (a.artists.length > 0 ? a.artists : [gallery.artist]).map((artist) => ({
+              "@type": "Person",
+              name: artist.name,
+            })),
           })),
         }}
       />
@@ -113,8 +125,8 @@ export default async function GalleryPage({
       </div>
 
       <PhotoGrid
-        artworks={artworks ?? []}
-        artistName={gallery.artist.name}
+        artworks={artworks}
+        fallbackArtistName={gallery.artist.name}
         whatsappNumber={gallery.whatsapp_number}
         siteDefaultWhatsapp={siteDefaultWhatsapp}
         shareUrl={galleryUrl}

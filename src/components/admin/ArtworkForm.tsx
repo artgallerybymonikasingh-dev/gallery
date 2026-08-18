@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import type { Artwork, Exhibition } from "@/lib/types";
+import type { Artist, Artwork, Exhibition } from "@/lib/types";
 import { suggestArtworkDescription } from "@/app/admin/(protected)/actions";
 
 export default function ArtworkForm({
@@ -9,6 +9,8 @@ export default function ArtworkForm({
   artwork,
   submitLabel,
   requireImage,
+  artists,
+  selectedArtistIds,
   exhibitions,
   selectedExhibitionIds,
 }: {
@@ -16,6 +18,8 @@ export default function ArtworkForm({
   artwork?: Artwork;
   submitLabel: string;
   requireImage: boolean;
+  artists: Artist[];
+  selectedArtistIds: string[];
   exhibitions: Exhibition[];
   selectedExhibitionIds?: string[];
 }) {
@@ -145,6 +149,30 @@ export default function ArtworkForm({
           />
         </label>
       </div>
+
+      {artists.length > 0 && (
+        <div>
+          <p className="text-sm font-medium text-neutral-700">Artist(s)</p>
+          <p className="mt-0.5 text-xs text-neutral-500">
+            Who made this specific piece — defaults to the gallery&apos;s artist, but can differ
+            (e.g. a guest piece). This never affects the gallery&apos;s or exhibition&apos;s own
+            artist list.
+          </p>
+          <div className="mt-1 space-y-1 rounded-md border border-neutral-300 p-2">
+            {artists.map((artist) => (
+              <label key={artist.id} className="flex items-center gap-2 text-sm text-neutral-700">
+                <input
+                  type="checkbox"
+                  name="artist_ids"
+                  value={artist.id}
+                  defaultChecked={selectedArtistIds.includes(artist.id)}
+                />
+                {artist.name}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       {exhibitions.length > 0 && (
         <div>

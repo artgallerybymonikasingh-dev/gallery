@@ -6,14 +6,14 @@ import PhotoLightbox from "./PhotoLightbox";
 
 export default function PhotoGrid({
   artworks,
-  artistName,
+  fallbackArtistName,
   whatsappNumber,
   siteDefaultWhatsapp,
   shareUrl,
   emptyText = "No photos in this gallery yet.",
 }: {
   artworks: ArtworkWithAppreciations[];
-  artistName: string;
+  fallbackArtistName: string;
   whatsappNumber?: string | null;
   siteDefaultWhatsapp: string;
   shareUrl: string;
@@ -77,7 +77,7 @@ export default function PhotoGrid({
           artwork={selected}
           artworks={artworks}
           selectedIndex={selectedIndex}
-          artistName={artistName}
+          fallbackArtistName={fallbackArtistName}
           whatsappNumber={whatsappNumber}
           siteDefaultWhatsapp={siteDefaultWhatsapp}
           shareUrl={shareUrl}

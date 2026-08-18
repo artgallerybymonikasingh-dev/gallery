@@ -15,6 +15,10 @@ type RawExhibition = Omit<ExhibitionWithArtists, "artists"> & {
   exhibition_artists: { artist: Artist }[];
 };
 
+type RawArtwork = Omit<ArtworkWithAppreciations, "artists"> & {
+  artwork_artists: { artist: Artist }[];
+};
+
 const getExhibition = cache(async (slug: string) => {
   const supabase = await createClient();
   const { data } = await supabase
@@ -36,31 +40,36 @@ const getExhibitionArtworks = cache(async (exhibitionId: string) => {
   const [{ data: taggedLinks }, { data: galleryLinks }] = await Promise.all([
     supabase
       .from("artwork_exhibitions")
-      .select("artwork:artworks(*, appreciations(*))")
+      .select("artwork:artworks(*, appreciations(*), artwork_artists(artist:artists(*)))")
       .eq("exhibition_id", exhibitionId)
-      .returns<{ artwork: ArtworkWithAppreciations }[]>(),
+      .returns<{ artwork: RawArtwork }[]>(),
     supabase.from("gallery_exhibitions").select("gallery_id").eq("exhibition_id", exhibitionId),
   ]);
 
   const galleryIds = (galleryLinks ?? []).map((l) => l.gallery_id);
-  let galleryArtworks: ArtworkWithAppreciations[] = [];
+  let galleryArtworks: RawArtwork[] = [];
   if (galleryIds.length > 0) {
     const { data } = await supabase
       .from("artworks")
-      .select("*, appreciations(*)")
+      .select("*, appreciations(*), artwork_artists(artist:artists(*))")
       .in("gallery_id", galleryIds)
-      .returns<ArtworkWithAppreciations[]>();
+      .returns<RawArtwork[]>();
     galleryArtworks = data ?? [];
   }
 
   const taggedArtworks = (taggedLinks ?? [])
     .map((l) => l.artwork)
-    .filter((a): a is ArtworkWithAppreciations => a !== null);
+    .filter((a): a is RawArtwork => a !== null);
 
-  const byId = new Map<string, ArtworkWithAppreciations>();
+  const byId = new Map<string, RawArtwork>();
   for (const artwork of [...taggedArtworks, ...galleryArtworks]) byId.set(artwork.id, artwork);
 
-  return [...byId.values()].sort((a, b) => a.sort_order - b.sort_order);
+  return [...byId.values()]
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((a): ArtworkWithAppreciations => {
+      const { artwork_artists, ...rest } = a;
+      return { ...rest, artists: artwork_artists.map((link) => link.artist) };
+    });
 });
 
 function formatDateRange(start: string | null, end: string | null): string | null {
@@ -170,7 +179,7 @@ export default async function ExhibitionPage({
 
       <PhotoGrid
         artworks={artworks}
-        artistName={exhibition.artists.map((a) => a.name).join(", ") || "the artists"}
+        fallbackArtistName={exhibition.artists.map((a) => a.name).join(", ") || "the artists"}
         siteDefaultWhatsapp={siteDefaultWhatsapp}
         shareUrl={exhibitionUrl}
         emptyText="No photos have been tagged to this exhibition yet."

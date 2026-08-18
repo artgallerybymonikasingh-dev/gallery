@@ -271,6 +271,62 @@ async function syncArtworkExhibitions(
   }
 }
 
+// A photo's own artist credit(s) — independent of its gallery's or any
+// exhibition's artist list, so checking multiple artists on a gallery or
+// exhibition never silently reattributes every photo in it.
+async function syncArtworkArtists(
+  admin: ReturnType<typeof createAdminClient>,
+  artworkId: string,
+  formData: FormData
+) {
+  const artistIds = formData
+    .getAll("artist_ids")
+    .filter((v): v is string => typeof v === "string" && v.length > 0);
+
+  await admin.from("artwork_artists").delete().eq("artwork_id", artworkId);
+  if (artistIds.length > 0) {
+    await admin
+      .from("artwork_artists")
+      .insert(artistIds.map((artistId) => ({ artwork_id: artworkId, artist_id: artistId })));
+  }
+}
+
+// Explicit, opt-in bulk action: adds the checked artist(s) to every photo
+// currently in the gallery. Unlike syncArtworkArtists this only ADDS —
+// it never removes an artist a photo already has — and it's a one-time
+// apply, not a standing rule, so it must be run again for photos added
+// later. Checking an artist on the gallery itself never does this
+// automatically.
+export async function addArtistToGalleryArtworks(galleryId: string, formData: FormData) {
+  await requireAdmin();
+  const artistIds = formData
+    .getAll("artist_ids")
+    .filter((v): v is string => typeof v === "string" && v.length > 0);
+  if (artistIds.length === 0) throw new Error("Choose at least one artist");
+
+  const admin = createAdminClient();
+  const { data: artworks } = await admin.from("artworks").select("id").eq("gallery_id", galleryId);
+  const artworkIds = (artworks ?? []).map((a) => a.id);
+
+  if (artworkIds.length > 0) {
+    const rows = artworkIds.flatMap((artworkId) =>
+      artistIds.map((artistId) => ({ artwork_id: artworkId, artist_id: artistId }))
+    );
+    const { error } = await admin
+      .from("artwork_artists")
+      .upsert(rows, { onConflict: "artwork_id,artist_id", ignoreDuplicates: true });
+    if (error) throw new Error(error.message);
+  }
+
+  const { data: gallery } = await admin.from("galleries").select("slug").eq("id", galleryId).single();
+  if (gallery?.slug) {
+    revalidatePath(`/admin/galleries/${gallery.slug}`);
+    revalidatePath(`/galleries/${gallery.slug}`);
+  }
+  revalidatePath("/exhibitions");
+  revalidatePath("/");
+}
+
 // Standing link between a gallery and zero, one, or more exhibitions —
 // every photo in a linked gallery (including ones added later) counts as
 // part of the exhibition, on top of any individually-tagged photos from
@@ -342,6 +398,7 @@ export async function createArtwork(galleryId: string, formData: FormData) {
   if (insertError) throw new Error(insertError.message);
 
   await syncArtworkExhibitions(admin, inserted.id, formData);
+  await syncArtworkArtists(admin, inserted.id, formData);
 
   const { data: gallery } = await admin
     .from("galleries")
@@ -476,6 +533,7 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
   if (error) throw new Error(error.message);
 
   await syncArtworkExhibitions(admin, artworkId, formData);
+  await syncArtworkArtists(admin, artworkId, formData);
 
   const { data: gallery } = await admin.from("galleries").select("slug").eq("id", galleryId).single();
 

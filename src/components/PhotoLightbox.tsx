@@ -13,7 +13,7 @@ export default function PhotoLightbox({
   artwork,
   artworks,
   selectedIndex,
-  artistName,
+  fallbackArtistName,
   whatsappNumber,
   siteDefaultWhatsapp,
   shareUrl,
@@ -25,7 +25,9 @@ export default function PhotoLightbox({
   artwork: ArtworkWithAppreciations;
   artworks: ArtworkWithAppreciations[];
   selectedIndex: number;
-  artistName: string;
+  // Used only when a photo has no artist(s) of its own set (shouldn't
+  // normally happen — every photo gets one by default at upload time).
+  fallbackArtistName: string;
   whatsappNumber?: string | null;
   siteDefaultWhatsapp: string;
   shareUrl: string;
@@ -34,6 +36,8 @@ export default function PhotoLightbox({
   onPrev?: () => void;
   onNext?: () => void;
 }) {
+  const artistName =
+    artwork.artists.length > 0 ? artwork.artists.map((a) => a.name).join(", ") : fallbackArtistName;
   // Portal straight to <body> so this always paints above everything,
   // including the sticky header — its backdrop-blur promotes it to a
   // compositing layer that some browsers stack above z-50 content that's

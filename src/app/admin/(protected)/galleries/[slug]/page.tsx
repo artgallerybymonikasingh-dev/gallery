@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { Artwork, Exhibition, GalleryWithArtist } from "@/lib/types";
+import type { Artist, Artwork, Exhibition, GalleryWithArtist } from "@/lib/types";
 import {
+  addArtistToGalleryArtworks,
   bulkCreateArtworks,
   createArtwork,
   deleteArtwork,
@@ -48,6 +49,8 @@ export default async function ManageGalleryPage({
     .order("start_date", { ascending: true, nullsFirst: false })
     .returns<Exhibition[]>();
 
+  const { data: artists } = await supabase.from("artists").select("*").order("name").returns<Artist[]>();
+
   const { data: artworkExhibitionLinks } = await supabase
     .from("artwork_exhibitions")
     .select("artwork_id, exhibition_id")
@@ -58,6 +61,18 @@ export default async function ManageGalleryPage({
     const list = exhibitionIdsByArtwork.get(link.artwork_id) ?? [];
     list.push(link.exhibition_id);
     exhibitionIdsByArtwork.set(link.artwork_id, list);
+  }
+
+  const { data: artworkArtistLinks } = await supabase
+    .from("artwork_artists")
+    .select("artwork_id, artist_id")
+    .in("artwork_id", (artworks ?? []).map((a) => a.id));
+
+  const artistIdsByArtwork = new Map<string, string[]>();
+  for (const link of artworkArtistLinks ?? []) {
+    const list = artistIdsByArtwork.get(link.artwork_id) ?? [];
+    list.push(link.artist_id);
+    artistIdsByArtwork.set(link.artwork_id, list);
   }
 
   const { data: galleryExhibitionLinks } = await supabase
@@ -133,6 +148,8 @@ export default async function ManageGalleryPage({
             action={createArtwork.bind(null, gallery.id)}
             submitLabel="Upload photo"
             requireImage
+            artists={artists ?? []}
+            selectedArtistIds={[gallery.artist_id]}
             exhibitions={exhibitions ?? []}
           />
         </div>
@@ -194,6 +211,36 @@ export default async function ManageGalleryPage({
               className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
             >
               Save
+            </button>
+          </form>
+        </section>
+      )}
+
+      {(artists ?? []).length > 0 && (artworks ?? []).length > 0 && (
+        <section>
+          <h2 className="text-sm font-medium text-neutral-700">Batch add artist to photos</h2>
+          <p className="mt-1 text-xs text-neutral-500">
+            Adds the checked artist(s) to every photo currently in this gallery, without removing
+            anyone already credited. A one-time action — new photos and re-runs aren&apos;t
+            automatic.
+          </p>
+          <form
+            action={addArtistToGalleryArtworks.bind(null, gallery.id)}
+            className="mt-2 max-w-md space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
+          >
+            <div className="max-h-32 space-y-1 overflow-y-auto rounded-md border border-neutral-300 p-2">
+              {(artists ?? []).map((artist) => (
+                <label key={artist.id} className="flex items-center gap-2 text-sm text-neutral-700">
+                  <input type="checkbox" name="artist_ids" value={artist.id} />
+                  {artist.name}
+                </label>
+              ))}
+            </div>
+            <button
+              type="submit"
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            >
+              Add to all photos in this gallery
             </button>
           </form>
         </section>
@@ -301,6 +348,8 @@ export default async function ManageGalleryPage({
                     artwork={artwork}
                     submitLabel="Save"
                     requireImage={false}
+                    artists={artists ?? []}
+                    selectedArtistIds={artistIdsByArtwork.get(artwork.id) ?? []}
                     exhibitions={exhibitions ?? []}
                     selectedExhibitionIds={exhibitionIdsByArtwork.get(artwork.id) ?? []}
                   />
