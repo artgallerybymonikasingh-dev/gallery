@@ -63,7 +63,7 @@ export default async function HomePage({
         ...rest,
         artists: exhibition_artists.map((link) => link.artist),
         photoCount: byId.size,
-        coverImageUrl: [...byId.values()][0] ?? null,
+        coverImageUrl: rest.cover_image_url ?? [...byId.values()][0] ?? null,
       };
     })
     .filter((ex) => {

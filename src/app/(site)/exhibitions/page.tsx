@@ -76,21 +76,32 @@ export default async function ExhibitionsPage() {
                 key={ex.id}
                 href={`/exhibitions/${ex.slug}`}
                 style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
-                className="card-hover-float animate-card-in block rounded-lg border border-royal-gold/25 bg-white p-4 shadow-sm transition-all duration-300 ease-out hover:border-royal-gold/70 hover:shadow-lg hover:shadow-royal-maroon/15 active:scale-[0.98] sm:p-5"
+                className="card-hover-float animate-card-in block overflow-hidden rounded-lg border border-royal-gold/25 bg-white shadow-sm transition-all duration-300 ease-out hover:border-royal-gold/70 hover:shadow-lg hover:shadow-royal-maroon/15 active:scale-[0.98]"
               >
-                <h2 className="font-serif text-lg font-medium text-royal-maroon">{ex.title}</h2>
-                {ex.artists.length > 0 && (
-                  <p className="mt-0.5 text-sm text-neutral-500">
-                    by {ex.artists.map((a) => a.name).join(", ")}
-                  </p>
+                {ex.cover_image_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={ex.cover_image_url}
+                    alt={ex.title}
+                    loading="lazy"
+                    className="h-40 w-full object-cover"
+                  />
                 )}
-                <div className="mt-2 space-y-0.5 text-sm text-neutral-600">
-                  {ex.location && <p>📍 {ex.location}</p>}
-                  {dateRange && <p>🗓️ {dateRange}</p>}
+                <div className="p-4 sm:p-5">
+                  <h2 className="font-serif text-lg font-medium text-royal-maroon">{ex.title}</h2>
+                  {ex.artists.length > 0 && (
+                    <p className="mt-0.5 text-sm text-neutral-500">
+                      by {ex.artists.map((a) => a.name).join(", ")}
+                    </p>
+                  )}
+                  <div className="mt-2 space-y-0.5 text-sm text-neutral-600">
+                    {ex.location && <p>📍 {ex.location}</p>}
+                    {dateRange && <p>🗓️ {dateRange}</p>}
+                  </div>
+                  {ex.description && (
+                    <p className="mt-3 whitespace-pre-line text-sm text-neutral-700">{ex.description}</p>
+                  )}
                 </div>
-                {ex.description && (
-                  <p className="mt-3 whitespace-pre-line text-sm text-neutral-700">{ex.description}</p>
-                )}
               </Link>
             );
           })}

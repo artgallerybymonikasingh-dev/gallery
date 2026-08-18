@@ -72,6 +72,9 @@ create table if not exists exhibitions (
   description text,
   start_date date,
   end_date date,
+  -- Admin-picked cover photo; falls back to the first tagged/linked photo
+  -- when unset (see the home page's exhibition cover-image logic).
+  cover_image_url text,
   created_at timestamptz not null default now()
 );
 

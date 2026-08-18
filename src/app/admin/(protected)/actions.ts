@@ -725,6 +725,22 @@ export async function setArtistAvatar(artistId: string, galleryId: string, image
   if (artist?.slug) revalidatePath(`/artists/${artist.slug}`);
 }
 
+export async function setExhibitionCover(exhibitionId: string, galleryId: string, imageUrl: string) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const [{ data: exhibition, error }, { data: gallery }] = await Promise.all([
+    admin.from("exhibitions").update({ cover_image_url: imageUrl }).eq("id", exhibitionId).select("slug").single(),
+    admin.from("galleries").select("slug").eq("id", galleryId).single(),
+  ]);
+  if (error) throw new Error(error.message);
+
+  if (gallery?.slug) revalidatePath(`/admin/galleries/${gallery.slug}`);
+  revalidatePath("/admin/exhibitions");
+  revalidatePath("/exhibitions");
+  revalidatePath("/");
+  if (exhibition?.slug) revalidatePath(`/exhibitions/${exhibition.slug}`);
+}
+
 // ---------- Appreciations ----------
 // `publicPath` is the page the appreciation will appear on once approved —
 // /galleries/[slug] for painting- and gallery-level ones, /artists/[slug] for

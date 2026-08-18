@@ -10,6 +10,7 @@ import {
   moveArtwork,
   setArtistAvatar,
   setArtistCover,
+  setExhibitionCover,
   setGalleryCover,
   updateArtwork,
   updateGallery,
@@ -80,6 +81,16 @@ export default async function ManageGalleryPage({
     .select("exhibition_id")
     .eq("gallery_id", id);
   const galleryExhibitionIds = (galleryExhibitionLinks ?? []).map((link) => link.exhibition_id);
+
+  const exhibitionsById = new Map((exhibitions ?? []).map((ex) => [ex.id, ex]));
+  // A photo counts toward an exhibition either by being individually
+  // tagged or by belonging to a gallery that's standing-linked to it —
+  // same union used on the public exhibition page — so "set as cover"
+  // options must reflect both.
+  function exhibitionsForArtwork(artworkId: string): Exhibition[] {
+    const ids = new Set([...(exhibitionIdsByArtwork.get(artworkId) ?? []), ...galleryExhibitionIds]);
+    return [...ids].map((exId) => exhibitionsById.get(exId)).filter((ex): ex is Exhibition => ex !== undefined);
+  }
 
   return (
     <div className="space-y-10">
@@ -255,6 +266,7 @@ export default async function ManageGalleryPage({
             const isGalleryCover = gallery.cover_image_url === artwork.image_url;
             const isArtistCover = gallery.artist.cover_image_url === artwork.image_url;
             const isArtistAvatar = gallery.artist.avatar_url === artwork.image_url;
+            const eligibleExhibitions = exhibitionsForArtwork(artwork.id);
             const isFirst = index === 0;
             const isLast = index === (artworks?.length ?? 1) - 1;
             return (
@@ -269,7 +281,10 @@ export default async function ManageGalleryPage({
                     alt={artwork.title}
                     className="h-48 w-full object-cover"
                   />
-                  {(isGalleryCover || isArtistCover || isArtistAvatar) && (
+                  {(isGalleryCover ||
+                    isArtistCover ||
+                    isArtistAvatar ||
+                    eligibleExhibitions.some((ex) => ex.cover_image_url === artwork.image_url)) && (
                     <div className="absolute left-2 top-2 flex flex-wrap gap-1">
                       {isGalleryCover && (
                         <span className="rounded-full bg-neutral-900/80 px-2 py-0.5 text-[10px] font-medium text-white">
@@ -284,6 +299,11 @@ export default async function ManageGalleryPage({
                       {isArtistAvatar && (
                         <span className="rounded-full bg-neutral-900/80 px-2 py-0.5 text-[10px] font-medium text-white">
                           Profile photo
+                        </span>
+                      )}
+                      {eligibleExhibitions.some((ex) => ex.cover_image_url === artwork.image_url) && (
+                        <span className="rounded-full bg-neutral-900/80 px-2 py-0.5 text-[10px] font-medium text-white">
+                          Exhibition cover
                         </span>
                       )}
                     </div>
@@ -341,6 +361,20 @@ export default async function ManageGalleryPage({
                       Set as profile photo
                     </button>
                   </form>
+                  {eligibleExhibitions.map((ex) => (
+                    <span key={ex.id} className="contents">
+                      <span className="text-neutral-300">·</span>
+                      <form action={setExhibitionCover.bind(null, ex.id, gallery.id, artwork.image_url)}>
+                        <button
+                          type="submit"
+                          disabled={ex.cover_image_url === artwork.image_url}
+                          className="text-xs text-blue-600 hover:underline disabled:text-neutral-400 disabled:no-underline"
+                        >
+                          Set as cover for &quot;{ex.title}&quot;
+                        </button>
+                      </form>
+                    </span>
+                  ))}
                 </div>
                 <div className="p-3">
                   <ArtworkForm

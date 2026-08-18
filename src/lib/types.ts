@@ -51,6 +51,7 @@ export type Exhibition = {
   description: string | null;
   start_date: string | null;
   end_date: string | null;
+  cover_image_url: string | null;
   created_at: string;
 };
 

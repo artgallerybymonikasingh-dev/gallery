@@ -114,7 +114,8 @@ export async function generateMetadata({
     exhibition.description ??
     (artistNames ? `An exhibition by ${artistNames} on Chitrashala.` : "An exhibition on Chitrashala.");
   const artworks = await getExhibitionArtworks(exhibition.id);
-  const images = artworks[0] ? [artworks[0].image_url] : undefined;
+  const coverImage = exhibition.cover_image_url ?? artworks[0]?.image_url;
+  const images = coverImage ? [coverImage] : undefined;
 
   return {
     title,
@@ -139,6 +140,7 @@ export default async function ExhibitionPage({
   const exhibitionUrl = `${SITE_URL}/exhibitions/${exhibition.slug}`;
   const dateRange = formatDateRange(exhibition.start_date, exhibition.end_date);
   const siteDefaultWhatsapp = await getSiteWhatsappNumber();
+  const coverImage = exhibition.cover_image_url ?? artworks[0]?.image_url ?? null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
@@ -152,6 +154,7 @@ export default async function ExhibitionPage({
           endDate: exhibition.end_date ?? undefined,
           location: exhibition.location ? { "@type": "Place", name: exhibition.location } : undefined,
           performer: exhibition.artists.map((a) => ({ "@type": "Person", name: a.name })),
+          image: coverImage ?? undefined,
           url: exhibitionUrl,
         }}
       />
@@ -161,6 +164,15 @@ export default async function ExhibitionPage({
           { label: exhibition.title },
         ]}
       />
+
+      {coverImage && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={coverImage}
+          alt={exhibition.title}
+          className="mb-6 h-48 w-full rounded-lg object-cover sm:mb-8 sm:h-64"
+        />
+      )}
 
       <div className="mb-6 flex items-start justify-between gap-3 sm:mb-8">
         <div>
