@@ -78,6 +78,8 @@ export async function createArtist(formData: FormData) {
   const email = readOptionalString(formData, "email");
   const whatsappNumber = readOptionalString(formData, "whatsapp_number");
   const address = readOptionalString(formData, "address");
+  const instagramUrl = readOptionalString(formData, "instagram_url");
+  const websiteUrl = readOptionalString(formData, "website_url");
 
   let avatarUrl: string | null = null;
   const avatarFile = formData.get("avatar");
@@ -94,6 +96,8 @@ export async function createArtist(formData: FormData) {
     email,
     whatsapp_number: whatsappNumber,
     address,
+    instagram_url: instagramUrl,
+    website_url: websiteUrl,
     avatar_url: avatarUrl,
   });
   if (error) throw new Error(error.message);
@@ -111,6 +115,8 @@ export async function updateArtist(artistId: string, formData: FormData) {
   const email = readOptionalString(formData, "email");
   const whatsappNumber = readOptionalString(formData, "whatsapp_number");
   const address = readOptionalString(formData, "address");
+  const instagramUrl = readOptionalString(formData, "instagram_url");
+  const websiteUrl = readOptionalString(formData, "website_url");
 
   const admin = createAdminClient();
   const updates: Record<string, unknown> = {
@@ -119,6 +125,8 @@ export async function updateArtist(artistId: string, formData: FormData) {
     email,
     whatsapp_number: whatsappNumber,
     address,
+    instagram_url: instagramUrl,
+    website_url: websiteUrl,
   };
 
   const avatarFile = formData.get("avatar");
@@ -372,6 +380,7 @@ export async function createArtwork(galleryId: string, formData: FormData) {
   const description = readOptionalString(formData, "description");
   const widthCm = readOptionalNumber(formData, "width_cm");
   const heightCm = readOptionalNumber(formData, "height_cm");
+  const price = readOptionalString(formData, "price");
   const status = readArtworkStatus(formData);
   const whatsappNumber = readOptionalString(formData, "whatsapp_number");
 
@@ -379,14 +388,17 @@ export async function createArtwork(galleryId: string, formData: FormData) {
 
   const admin = createAdminClient();
   const sortOrder = await nextSortOrder(admin, galleryId);
+  const slug = await ensureUniqueSlug(admin, "artworks", title);
   const { data: inserted, error: insertError } = await admin
     .from("artworks")
     .insert({
       gallery_id: galleryId,
+      slug,
       title,
       description,
       width_cm: widthCm,
       height_cm: heightCm,
+      price,
       image_url: publicUrl,
       storage_path: path,
       sort_order: sortOrder,
@@ -429,8 +441,10 @@ export async function bulkCreateArtworks(galleryId: string, formData: FormData) 
 
   for (const file of files) {
     const { path, publicUrl } = await uploadArtworkImage(file, galleryId);
+    const slug = await ensureUniqueSlug(admin, "artworks", "Untitled");
     const { error } = await admin.from("artworks").insert({
       gallery_id: galleryId,
+      slug,
       title: "Untitled",
       image_url: publicUrl,
       storage_path: path,
@@ -499,6 +513,7 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
   const description = readOptionalString(formData, "description");
   const widthCm = readOptionalNumber(formData, "width_cm");
   const heightCm = readOptionalNumber(formData, "height_cm");
+  const price = readOptionalString(formData, "price");
   const status = readArtworkStatus(formData);
   const whatsappNumber = readOptionalString(formData, "whatsapp_number");
 
@@ -508,6 +523,7 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
     description,
     width_cm: widthCm,
     height_cm: heightCm,
+    price,
     status,
     whatsapp_number: whatsappNumber,
   };
@@ -535,11 +551,15 @@ export async function updateArtwork(artworkId: string, galleryId: string, formDa
   await syncArtworkExhibitions(admin, artworkId, formData);
   await syncArtworkArtists(admin, artworkId, formData);
 
-  const { data: gallery } = await admin.from("galleries").select("slug").eq("id", galleryId).single();
+  const [{ data: gallery }, { data: artworkRow }] = await Promise.all([
+    admin.from("galleries").select("slug").eq("id", galleryId).single(),
+    admin.from("artworks").select("slug").eq("id", artworkId).single(),
+  ]);
 
   if (gallery?.slug) {
     revalidatePath(`/admin/galleries/${gallery.slug}`);
     revalidatePath(`/galleries/${gallery.slug}`);
+    if (artworkRow?.slug) revalidatePath(`/galleries/${gallery.slug}/${artworkRow.slug}`);
   }
   revalidatePath("/");
   revalidatePath("/exhibitions");

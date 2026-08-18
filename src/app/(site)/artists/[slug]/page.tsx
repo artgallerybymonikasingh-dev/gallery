@@ -107,6 +107,30 @@ export default async function ArtistPage({
             {artist.bio && (
               <p className="mt-1 line-clamp-2 max-w-lg text-sm text-neutral-600">{artist.bio}</p>
             )}
+            {(artist.instagram_url || artist.website_url) && (
+              <div className="mt-1.5 flex items-center gap-3 text-sm">
+                {artist.instagram_url && (
+                  <a
+                    href={artist.instagram_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-royal-teal hover:underline"
+                  >
+                    Instagram
+                  </a>
+                )}
+                {artist.website_url && (
+                  <a
+                    href={artist.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-royal-teal hover:underline"
+                  >
+                    Website
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <ShareButton

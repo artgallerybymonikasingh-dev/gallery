@@ -150,6 +150,16 @@ export default function ArtworkForm({
         </label>
       </div>
 
+      <label className="block text-sm font-medium text-neutral-700">
+        Price (optional)
+        <input
+          name="price"
+          defaultValue={artwork?.price ?? ""}
+          placeholder={'e.g. "₹15,000" or "Price on request" — leave blank to hide'}
+          className="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
+        />
+      </label>
+
       {artists.length > 0 && (
         <div>
           <p className="text-sm font-medium text-neutral-700">Artist(s)</p>

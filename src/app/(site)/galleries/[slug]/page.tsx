@@ -2,7 +2,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import PhotoGrid from "@/components/PhotoGrid";
+import PhotoGrid, { type ArtworkWithPermalink } from "@/components/PhotoGrid";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import AppreciationBox from "@/components/AppreciationBox";
@@ -68,12 +68,17 @@ export default async function GalleryPage({
     .order("created_at", { ascending: true })
     .returns<RawArtwork[]>();
 
-  const artworks: ArtworkWithAppreciations[] = (rawArtworks ?? []).map((a) => {
+  const galleryUrl = `${SITE_URL}/galleries/${gallery.slug}`;
+
+  const artworks: ArtworkWithPermalink[] = (rawArtworks ?? []).map((a) => {
     const { artwork_artists, ...rest } = a;
-    return { ...rest, artists: artwork_artists.map((link) => link.artist) };
+    return {
+      ...rest,
+      artists: artwork_artists.map((link) => link.artist),
+      permalink: `${galleryUrl}/${a.slug}`,
+    };
   });
 
-  const galleryUrl = `${SITE_URL}/galleries/${gallery.slug}`;
   const siteDefaultWhatsapp = await getSiteWhatsappNumber();
 
   return (
@@ -129,7 +134,6 @@ export default async function GalleryPage({
         fallbackArtistName={gallery.artist.name}
         whatsappNumber={gallery.whatsapp_number}
         siteDefaultWhatsapp={siteDefaultWhatsapp}
-        shareUrl={galleryUrl}
       />
 
       <AppreciationBox

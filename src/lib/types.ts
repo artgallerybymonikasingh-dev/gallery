@@ -8,6 +8,8 @@ export type Artist = {
   whatsapp_number: string | null;
   address: string | null;
   cover_image_url: string | null;
+  instagram_url: string | null;
+  website_url: string | null;
   created_at: string;
 };
 
@@ -27,10 +29,12 @@ export type ArtworkStatus = "available" | "reserved" | "sold";
 export type Artwork = {
   id: string;
   gallery_id: string;
+  slug: string;
   title: string;
   description: string | null;
   width_cm: number | null;
   height_cm: number | null;
+  price: string | null;
   image_url: string;
   storage_path: string;
   sort_order: number;

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import type { ArtworkWithAppreciations } from "@/lib/types";
+import Link from "next/link";
+import type { ArtworkWithPermalink } from "./PhotoGrid";
 import { whatsappEnquiryLink } from "@/lib/whatsapp";
 import AppreciationSection from "./AppreciationSection";
 import ShareButton from "./ShareButton";
@@ -16,21 +17,19 @@ export default function PhotoLightbox({
   fallbackArtistName,
   whatsappNumber,
   siteDefaultWhatsapp,
-  shareUrl,
   onClose,
   onSelect,
   onPrev,
   onNext,
 }: {
-  artwork: ArtworkWithAppreciations;
-  artworks: ArtworkWithAppreciations[];
+  artwork: ArtworkWithPermalink;
+  artworks: ArtworkWithPermalink[];
   selectedIndex: number;
   // Used only when a photo has no artist(s) of its own set (shouldn't
   // normally happen — every photo gets one by default at upload time).
   fallbackArtistName: string;
   whatsappNumber?: string | null;
   siteDefaultWhatsapp: string;
-  shareUrl: string;
   onClose: () => void;
   onSelect: (index: number) => void;
   onPrev?: () => void;
@@ -118,7 +117,9 @@ export default function PhotoLightbox({
         <img
           src={artwork.image_url}
           alt={artwork.title}
-          className="max-h-full max-w-full object-contain"
+          draggable={false}
+          onContextMenu={(e) => e.preventDefault()}
+          className="max-h-full max-w-full select-none object-contain [-webkit-touch-callout:none]"
           onClick={(e) => e.stopPropagation()}
         />
       </div>
@@ -144,10 +145,16 @@ export default function PhotoLightbox({
                   {STATUS_LABEL[artwork.status]}
                 </span>
               </div>
-              <p className="mt-0.5 text-sm text-neutral-300">by {artistName}</p>
+              <p className="mt-0.5 text-sm text-neutral-300">
+                by {artistName}
+                {" · "}
+                <Link href={artwork.permalink} className="underline hover:text-white">
+                  View full page
+                </Link>
+              </p>
             </div>
             <ShareButton
-              url={shareUrl}
+              url={artwork.permalink}
               title={artwork.title}
               text={`"${artwork.title}" by ${artistName} on Chitrashala`}
               className="flex shrink-0 items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition-colors hover:bg-white/20"
@@ -159,6 +166,8 @@ export default function PhotoLightbox({
               {artwork.width_cm} × {artwork.height_cm} cm
             </p>
           )}
+
+          {artwork.price && <p className="mt-1 text-sm font-medium text-royal-gold-light">{artwork.price}</p>}
 
           {artwork.description && (
             <p className="mt-2 whitespace-pre-line text-sm text-neutral-200 sm:text-base">
@@ -204,7 +213,13 @@ export default function PhotoLightbox({
                     }`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={a.image_url} alt="" className="h-full w-full object-cover" />
+                    <img
+                      src={a.image_url}
+                      alt=""
+                      draggable={false}
+                      onContextMenu={(e) => e.preventDefault()}
+                      className="h-full w-full select-none object-cover [-webkit-touch-callout:none]"
+                    />
                   </button>
                 ))}
               </div>

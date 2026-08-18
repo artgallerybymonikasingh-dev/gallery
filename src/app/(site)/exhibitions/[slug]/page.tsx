@@ -2,7 +2,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import PhotoGrid from "@/components/PhotoGrid";
+import PhotoGrid, { type ArtworkWithPermalink } from "@/components/PhotoGrid";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ShareButton from "@/components/ShareButton";
@@ -64,11 +64,24 @@ const getExhibitionArtworks = cache(async (exhibitionId: string) => {
   const byId = new Map<string, RawArtwork>();
   for (const artwork of [...taggedArtworks, ...galleryArtworks]) byId.set(artwork.id, artwork);
 
-  return [...byId.values()]
+  const combined = [...byId.values()];
+  const distinctGalleryIds = [...new Set(combined.map((a) => a.gallery_id))];
+  const { data: galleries } = await supabase
+    .from("galleries")
+    .select("id, slug")
+    .in("id", distinctGalleryIds.length > 0 ? distinctGalleryIds : [""]);
+  const gallerySlugById = new Map((galleries ?? []).map((g) => [g.id, g.slug]));
+
+  return combined
     .sort((a, b) => a.sort_order - b.sort_order)
-    .map((a): ArtworkWithAppreciations => {
+    .map((a): ArtworkWithPermalink => {
       const { artwork_artists, ...rest } = a;
-      return { ...rest, artists: artwork_artists.map((link) => link.artist) };
+      const gallerySlug = gallerySlugById.get(a.gallery_id);
+      return {
+        ...rest,
+        artists: artwork_artists.map((link) => link.artist),
+        permalink: `${SITE_URL}/galleries/${gallerySlug}/${a.slug}`,
+      };
     });
 });
 
@@ -181,7 +194,6 @@ export default async function ExhibitionPage({
         artworks={artworks}
         fallbackArtistName={exhibition.artists.map((a) => a.name).join(", ") || "the artists"}
         siteDefaultWhatsapp={siteDefaultWhatsapp}
-        shareUrl={exhibitionUrl}
         emptyText="No photos have been tagged to this exhibition yet."
       />
 

@@ -69,6 +69,7 @@ async function main() {
   await backfill("artists", "name");
   await backfill("galleries", "title");
   await backfill("exhibitions", "title");
+  await backfill("artworks", "title");
   console.log("Done.");
 }
 

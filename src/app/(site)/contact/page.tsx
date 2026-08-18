@@ -65,10 +65,36 @@ export default async function ContactPage() {
                     </a>
                   </p>
                 )}
-                {artist.address && <p className="text-neutral-600">{artist.address}</p>}
-                {!artist.email && !artist.whatsapp_number && !artist.address && (
-                  <p className="text-neutral-400">No contact details added yet.</p>
+                {artist.instagram_url && (
+                  <p>
+                    <a
+                      href={artist.instagram_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-royal-teal hover:underline"
+                    >
+                      Instagram
+                    </a>
+                  </p>
                 )}
+                {artist.website_url && (
+                  <p>
+                    <a
+                      href={artist.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-royal-teal hover:underline"
+                    >
+                      Website
+                    </a>
+                  </p>
+                )}
+                {artist.address && <p className="text-neutral-600">{artist.address}</p>}
+                {!artist.email &&
+                  !artist.whatsapp_number &&
+                  !artist.instagram_url &&
+                  !artist.website_url &&
+                  !artist.address && <p className="text-neutral-400">No contact details added yet.</p>}
               </div>
             </div>
           ))}

@@ -15,6 +15,8 @@ create table if not exists artists (
   whatsapp_number text,
   address text,
   cover_image_url text,
+  instagram_url text,
+  website_url text,
   created_at timestamptz not null default now()
 );
 
@@ -32,10 +34,14 @@ create table if not exists galleries (
 create table if not exists artworks (
   id uuid primary key default gen_random_uuid(),
   gallery_id uuid not null references galleries(id) on delete cascade,
+  -- Powers each photo's own permalink page (/galleries/[slug]/[artworkSlug]).
+  slug text unique,
   title text not null default 'Untitled',
   description text,
   width_cm numeric,
   height_cm numeric,
+  -- Free text so "Price on request" works alongside actual numbers/currency.
+  price text,
   image_url text not null,
   storage_path text not null,
   sort_order integer not null default 0,

@@ -87,6 +87,26 @@ export default async function EditArtistPage({
             className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
           />
         </label>
+        <label className="block text-sm font-medium text-neutral-700">
+          Instagram URL (optional)
+          <input
+            name="instagram_url"
+            type="url"
+            defaultValue={artist.instagram_url ?? ""}
+            placeholder="https://instagram.com/..."
+            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+        </label>
+        <label className="block text-sm font-medium text-neutral-700">
+          Website URL (optional)
+          <input
+            name="website_url"
+            type="url"
+            defaultValue={artist.website_url ?? ""}
+            placeholder="https://..."
+            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+        </label>
         <button
           type="submit"
           className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"

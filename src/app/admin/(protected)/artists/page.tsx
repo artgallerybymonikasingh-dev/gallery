@@ -90,6 +90,18 @@ export default async function AdminArtistsPage() {
           placeholder="Address (optional)"
           className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
         />
+        <input
+          name="instagram_url"
+          type="url"
+          placeholder="Instagram URL (optional)"
+          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+        />
+        <input
+          name="website_url"
+          type="url"
+          placeholder="Website URL (optional)"
+          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+        />
         <button
           type="submit"
           className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"

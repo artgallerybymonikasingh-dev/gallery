@@ -5,10 +5,14 @@ import { SITE_URL } from "@/lib/site";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
 
-  const [{ data: artists }, { data: galleries }, { data: exhibitions }] = await Promise.all([
+  const [{ data: artists }, { data: galleries }, { data: exhibitions }, { data: artworks }] = await Promise.all([
     supabase.from("artists").select("slug"),
     supabase.from("galleries").select("slug"),
     supabase.from("exhibitions").select("slug"),
+    supabase
+      .from("artworks")
+      .select("slug, gallery:galleries(slug)")
+      .returns<{ slug: string | null; gallery: { slug: string | null } | null }[]>(),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -38,5 +42,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-  return [...staticRoutes, ...artistRoutes, ...galleryRoutes, ...exhibitionRoutes];
+  const artworkRoutes: MetadataRoute.Sitemap = (artworks ?? [])
+    .filter((a): a is { slug: string; gallery: { slug: string } } => Boolean(a.slug) && Boolean(a.gallery?.slug))
+    .map((a) => ({
+      url: `${SITE_URL}/galleries/${a.gallery.slug}/${a.slug}`,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    }));
+
+  return [...staticRoutes, ...artistRoutes, ...galleryRoutes, ...exhibitionRoutes, ...artworkRoutes];
 }
